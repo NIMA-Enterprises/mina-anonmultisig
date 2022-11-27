@@ -7,6 +7,9 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
+  Signature,
+  CircuitString,
+  Bool,
 } from 'snarkyjs';
 
 let proofsEnabled = false;
@@ -25,6 +28,19 @@ async function localDeploy(
     AccountUpdate.fundNewAccount(deployerAccount);
     zkAppInstance.deploy({ zkappKey: zkAppPrivatekey });
     zkAppInstance.init(zkAppPrivatekey);
+  });
+  await txn.prove();
+  txn.sign([zkAppPrivatekey]);
+  await txn.send();
+}
+
+async function setAdmin(
+  zkAppInstance: AnonMultiSig,
+  zkAppPrivatekey: PrivateKey,
+  deployerAccount: PrivateKey
+) {
+  const txn = await Mina.transaction(deployerAccount, () => {
+    zkAppInstance.setAdmin(deployerAccount.toPublicKey());
   });
   await txn.prove();
   txn.sign([zkAppPrivatekey]);
@@ -55,23 +71,52 @@ describe('AnonMultiSig', () => {
   });
 
   it('generates and deploys the `AnonMultiSig` smart contract', async () => {
+    // Deploy zkApp
     const zkAppInstance = new AnonMultiSig(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+    // Conclude if zkApp is initialized
     const num = zkAppInstance.num.get();
     expect(num).toEqual(Field(1));
+    // Set admin and check value
+    await setAdmin(zkAppInstance, zkAppPrivateKey, deployerAccount);
+    const admin = zkAppInstance.admin.get();
+    expect(admin).toEqual(deployerAccount.toPublicKey());
   });
 
   it('correctly updates the num state on the `AnonMultiSig` smart contract', async () => {
     const zkAppInstance = new AnonMultiSig(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+    const num: Field = Field(7);
+    const nonce: Field = zkAppInstance.nonce.get();
+    const msg: CircuitString = CircuitString.fromString(num.toString().concat(nonce.toString()));
+    const sig: Signature = Signature.create(deployerAccount, msg.hash().toFields());
     const txn = await Mina.transaction(deployerAccount, () => {
-      zkAppInstance.update();
+      zkAppInstance.update(sig, num);
     });
     await txn.prove();
     txn.sign([zkAppPrivateKey]);
     await txn.send();
 
     const updatedNum = zkAppInstance.num.get();
-    expect(updatedNum).toEqual(Field(3));
+    expect(updatedNum).toEqual(Field(7));
+  });
+
+  describe('General POC tests', () => {
+    it('Create & Recover signature with snarkyjs', async () => {
+      const privateKey: PrivateKey = PrivateKey.random();
+      const publicKey: PublicKey = privateKey.toPublicKey();
+  
+      const msg: CircuitString = CircuitString.fromString('hello');
+      const msgHash: Field = msg.hash();
+      // console.log(msg, msg.toFields(), msgHash, msgHash.toString());
+  
+      const sig: Signature = Signature.create(privateKey, msgHash.toFields());
+      // console.log(sig, sig.r.toString(), sig.s.toString());
+  
+      const success: Bool = sig.verify(publicKey, msgHash.toFields());
+      // console.log(success);
+  
+      expect(success).toBeTruthy;
+    });
   });
 });
