@@ -34,33 +34,20 @@ async function localDeploy(
   await txn.send();
 }
 
-async function setAdmin(
-  zkAppInstance: AnonMultiSig,
-  zkAppPrivatekey: PrivateKey,
-  deployerAccount: PrivateKey
-) {
-  const txn = await Mina.transaction(deployerAccount, () => {
-    zkAppInstance.setAdmin(deployerAccount.toPublicKey());
-  });
-  await txn.prove();
-  txn.sign([zkAppPrivatekey]);
-  await txn.send();
-}
-
 describe('AnonMultiSig', () => {
   let deployerAccount: PrivateKey,
     zkAppAddress: PublicKey,
-    zkAppPrivateKey: PrivateKey;
+    zkAppPrivateKey: PrivateKey,
+    zkAppInstance: AnonMultiSig;
 
   beforeAll(async () => {
     await isReady;
     if (proofsEnabled) AnonMultiSig.compile();
-  });
 
-  beforeEach(() => {
     deployerAccount = createLocalBlockchain();
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
+    zkAppInstance = new AnonMultiSig(zkAppAddress);
   });
 
   afterAll(async () => {
@@ -72,24 +59,35 @@ describe('AnonMultiSig', () => {
 
   it('generates and deploys the `AnonMultiSig` smart contract', async () => {
     // Deploy zkApp
-    const zkAppInstance = new AnonMultiSig(zkAppAddress);
     await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
-    // Conclude if zkApp is initialized
+    // Make sure zkApp is initialized
     const num = zkAppInstance.num.get();
     expect(num).toEqual(Field(1));
-    // Set admin and check value
-    await setAdmin(zkAppInstance, zkAppPrivateKey, deployerAccount);
+  });
+
+  it('correctly sets the admin state', async () => {
+    // Create and send transaction
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.setAdmin(deployerAccount.toPublicKey());
+    });
+    await txn.prove();
+    txn.sign([zkAppPrivateKey]);
+    await txn.send();
+    // console.log(zkAppInstance.admin.get().x.toString()); // Log the admin address
+    // Make sure admin is set
     const admin = zkAppInstance.admin.get();
     expect(admin).toEqual(deployerAccount.toPublicKey());
   });
 
-  it('correctly updates the num state on the `AnonMultiSig` smart contract', async () => {
-    const zkAppInstance = new AnonMultiSig(zkAppAddress);
-    await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+  it('correctly updates the num state', async () => {
     const num: Field = Field(7);
     const nonce: Field = zkAppInstance.nonce.get();
+
+    // Generate signature
     const msg: CircuitString = CircuitString.fromString(num.toString().concat(nonce.toString()));
     const sig: Signature = Signature.create(deployerAccount, msg.hash().toFields());
+
+    // Create and send transaction
     const txn = await Mina.transaction(deployerAccount, () => {
       zkAppInstance.update(sig, num);
     });
@@ -97,6 +95,7 @@ describe('AnonMultiSig', () => {
     txn.sign([zkAppPrivateKey]);
     await txn.send();
 
+    // Check if state is updated properly
     const updatedNum = zkAppInstance.num.get();
     expect(updatedNum).toEqual(Field(7));
   });
