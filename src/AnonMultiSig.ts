@@ -2,23 +2,27 @@ import {
   Field,
   SmartContract,
   Bool,
+  UInt64,
   state,
   State,
   method,
   DeployArgs,
   Permissions,
-  PrivateKey,
   Signature,
   PublicKey,
-  Circuit,
-  CircuitString
+  CircuitString,
+  Circuit
 } from 'snarkyjs';
 
 export class AnonMultiSig extends SmartContract {
-  @state(Field) num = State<Field>();
-  @state(Field) nonce = State<Field>();
-  @state(Field) root = State<Field>();
+
   @state(PublicKey) admin = State<PublicKey>();
+  @state(Field) membersTreeRoot = State<Field>();
+  @state(Field) numberOfMembers = State<Field>();
+  @state(Field) minimalQuorum = State<Field>();
+  @state(Field) currentProposalId = State<Field>();
+  @state(Field) currentProposalHash = State<Field>();
+  @state(Field) currentProposalVotes = State<Field>();
   
   deploy(args: DeployArgs) {
     super.deploy(args);
