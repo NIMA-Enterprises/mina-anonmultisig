@@ -78,34 +78,34 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    * @notice Function to set new 'AnonMultiSig' administrator
-   * @param admin is public key of new administrator
+   * @param newAdmin is public key of new administrator
    * @param signature is expireable signature provided by the current admin
    * @param expirationTimestamp is timestamp until which signature is valid
    */
-  @method setAdmin(admin: PublicKey, signature: Signature, expirationTimestamp: UInt64) {
+  @method setAdmin(newAdmin: PublicKey, signature: Signature, expirationTimestamp: UInt64) {
     // Get and assert current admin
     const currentAdmin: PublicKey = this.admin.get();
     this.admin.assertEquals(currentAdmin);
 
     // Require that new admin is not empty
-    admin.isEmpty().assertFalse();
+    newAdmin.isEmpty().assertFalse();
     // Require new admin is different than the current one
-    currentAdmin.equals(admin).assertFalse();
+    currentAdmin.equals(newAdmin).assertFalse();
 
     // Reconstruct signed message
     const msg: Field = CircuitString.fromString(
-      admin.toString().concat(expirationTimestamp.toString())
+      newAdmin.toString().concat(expirationTimestamp.toString())
     ).hash();
 
     // Make sure signature is valid
-    const isSignatureValid: Bool = signature.verify(currentAdmin, msg.toFields());
+    const isSignatureValid: Bool = signature.verify(currentAdmin, [msg]);
     isSignatureValid.assertTrue;
 
     // Require signature has not expired
-    this.network.timestamp.assertBetween(UInt64.from(0) , expirationTimestamp);
+    this.network.timestamp.assertBetween(UInt64.from(0), expirationTimestamp);
 
     // Set new admin
-    this.admin.set(admin);
+    this.admin.set(newAdmin);
   }
 
 }
