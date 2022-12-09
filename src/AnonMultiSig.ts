@@ -11,18 +11,23 @@ import {
   Signature,
   PublicKey,
   CircuitString,
-  Circuit
+  MerkleWitness,
+  Poseidon,
+  Encoding
 } from 'snarkyjs';
+
+class MyMerkleWitness extends MerkleWitness(8) {}
 
 export class AnonMultiSig extends SmartContract {
 
-  @state(PublicKey) admin = State<PublicKey>();
+  @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
   @state(Field) numberOfMembers = State<Field>();
   @state(Field) minimalQuorum = State<Field>();
-  @state(Field) currentProposalId = State<Field>();
-  @state(Field) currentProposalHash = State<Field>();
-  @state(Field) currentProposalVotes = State<Field>();
+  @state(Field) proposalId = State<Field>();
+  @state(Field) proposalHash = State<Field>();
+  @state(Field) proposalVotes = State<Field>();
+  @state(Field) proposalNonce = State<Field>();
   
   deploy(args: DeployArgs) {
     super.deploy(args);
@@ -41,34 +46,34 @@ export class AnonMultiSig extends SmartContract {
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
    * @dev 182 is maximum number of votes that can be fit into single word of memory
    */
-  @method initialize(admin: PublicKey, membersTreeRoot: Field, numberOfMembers: Field, minimalQuorum: Field) {
+  @method initialize(admin: Field, membersTreeRoot: Field, numberOfMembers: Field, minimalQuorum: Field) {
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
-    currentMembersTreeRoot.assertEquals(Field(0));
-    membersTreeRoot.assertGt(Field(0));
+    currentMembersTreeRoot.isZero().assertTrue();
+    membersTreeRoot.isZero().assertFalse();
     this.membersTreeRoot.set(membersTreeRoot);
 
     // Set admin
-    const currentAdmin: PublicKey = this.admin.get();
+    const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
-    currentAdmin.isEmpty().assertTrue();
-    admin.isEmpty().assertFalse();
+    currentAdmin.isZero().assertTrue();
+    admin.isZero().assertFalse();
     this.admin.set(admin);
 
     // Set initial number of members
     const currentNumberOfMembers: Field = this.numberOfMembers.get();
     this.numberOfMembers.assertEquals(currentNumberOfMembers);
-    currentNumberOfMembers.assertEquals(Field(0));
-    numberOfMembers.assertGt(Field(0));
+    currentNumberOfMembers.isZero().assertTrue();
+    numberOfMembers.isZero().assertFalse();
     numberOfMembers.assertLte(Field(182));
     this.numberOfMembers.set(Field(numberOfMembers));
 
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
-    currentMinimalQuorum.assertEquals(Field(0));
-    minimalQuorum.assertGt(Field(0));
+    currentMinimalQuorum.isZero().assertTrue();
+    minimalQuorum.isZero().assertFalse();
     minimalQuorum.assertLt(numberOfMembers);
     this.minimalQuorum.set(minimalQuorum);
 
@@ -82,24 +87,27 @@ export class AnonMultiSig extends SmartContract {
    * @param signature is expireable signature provided by the current admin
    * @param expirationTimestamp is timestamp until which signature is valid
    */
-  @method setAdmin(newAdmin: PublicKey, signature: Signature, expirationTimestamp: UInt64) {
+  @method setAdmin(oldAdmin: PublicKey, newAdmin: Field, signature: Signature, expirationTimestamp: UInt64) {
     // Get and assert current admin
-    const currentAdmin: PublicKey = this.admin.get();
+    const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
+    currentAdmin.assertEquals(CircuitString.fromString(oldAdmin.toBase58()).hash());
 
     // Require that new admin is not empty
-    newAdmin.isEmpty().assertFalse();
+    newAdmin.isZero().assertFalse();
     // Require new admin is different than the current one
     currentAdmin.equals(newAdmin).assertFalse();
 
     // Reconstruct signed message
-    const msg: Field = CircuitString.fromString(
-      newAdmin.toString().concat(expirationTimestamp.toString())
-    ).hash();
+    const msg: Field = Poseidon.hash(
+      Encoding.stringToFields(
+        newAdmin.toString().concat(expirationTimestamp.toString())
+      )
+    );
 
     // Make sure signature is valid
-    const isSignatureValid: Bool = signature.verify(currentAdmin, [msg]);
-    isSignatureValid.assertTrue;
+    const isSignatureValid: Bool = signature.verify(oldAdmin, [msg]);
+    isSignatureValid.assertTrue();
 
     // Require signature has not expired
     this.network.timestamp.assertBetween(UInt64.from(0), expirationTimestamp);
