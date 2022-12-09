@@ -116,4 +116,57 @@ export class AnonMultiSig extends SmartContract {
     this.admin.set(newAdmin);
   }
 
+  /**
+   * @notice Function to make new proposal / initiate new voting session
+   * @param admin is public key of contract administrator
+   * @param member is user who's identity privilege needs to be verified
+   * @param path is proof of user belonging in the members tree
+   * @param proposalHash is identification hash of proposed action
+   * @param signature is administrator's confirmation signature
+   */
+  @method makeProposal(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, proposalHash: Field, signature: Signature) {
+    // Verify admin
+    const contractAdmin: Field = this.admin.get();
+    this.admin.assertEquals(contractAdmin);
+    contractAdmin.assertEquals(CircuitString.fromString(admin.toBase58()).hash());
+
+    // Assert current root
+    const membersTreeRoot: Field = this.membersTreeRoot.get();
+    this.membersTreeRoot.assertEquals(membersTreeRoot);
+
+    // Assert member being part of the tree
+    path.calculateRoot(CircuitString.fromString(member.toBase58()).hash()).assertEquals(membersTreeRoot);
+
+    // Assert votes state is empty
+    const proposalVotes: Field = this.proposalVotes.get();
+    this.proposalVotes.assertEquals(proposalVotes);
+    proposalVotes.isZero().assertTrue();
+
+    // Assert proposal hash state is empty
+    const currentProposalHash: Field = this.proposalHash.get();
+    this.proposalHash.assertEquals(currentProposalHash);
+    currentProposalHash.isZero().assertTrue();
+
+    // Assert new proposal hash is not empty field
+    proposalHash.isZero().assertFalse();
+
+    // Increase proposal nonce by 1
+    const proposalNonce: Field = this.proposalNonce.get();
+    this.proposalNonce.assertEquals(proposalNonce);
+    const newNonce: Field = proposalNonce.add(1);
+    this.proposalNonce.set(newNonce);
+
+    // Reconstruct signed message
+    const msg: Field = Poseidon.hash(
+      Encoding.stringToFields(
+        member.toBase58().concat(proposalHash.toString()).concat(newNonce.toString())
+      )
+    );
+
+    // Verify Signature
+    signature.verify(admin, [msg]).assertTrue();
+
+    // Set new proposal hash
+    this.proposalHash.set(proposalHash);
+  }
 }
