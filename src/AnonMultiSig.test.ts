@@ -11,9 +11,19 @@ import {
   CircuitString,
   Bool,
   UInt64,
+  MerkleTree,
+  MerkleWitness,
+  Poseidon,
+  Encoding
 } from 'snarkyjs';
 
-let proofsEnabled = false;
+class MyMerkleWitness extends MerkleWitness(8) {}
+
+let tree: MerkleTree;
+let leaves: PublicKey[] = [];
+
+let proofsEnabled: boolean = false;
+
 function createLocalBlockchain(): PrivateKey[] {
   const Local = Mina.LocalBlockchain({ proofsEnabled });
   Mina.setActiveInstance(Local);
@@ -115,21 +125,40 @@ describe('AnonMultiSig', () => {
   });
 
   describe('General POC tests', () => {
-    it('Create & Recover signature with snarkyjs', async () => {
+    it('Create & recover signature with snarkyjs', async () => {
       const privateKey: PrivateKey = PrivateKey.random();
       const publicKey: PublicKey = privateKey.toPublicKey();
 
+      // Construct message to sign
       const msg: CircuitString = CircuitString.fromString('hello');
       const msgHash: Field = msg.hash();
-      // console.log(msg, msg.toFields(), msgHash, msgHash.toString());
 
-      const sig: Signature = Signature.create(privateKey, msgHash.toFields());
-      // console.log(sig, sig.r.toString(), sig.s.toString());
+      // Construct signature
+      const sig: Signature = Signature.create(privateKey, [msgHash]);
 
-      const success: Bool = sig.verify(publicKey, msgHash.toFields());
-      // console.log(success);
+      // Verify signature
+      const success: Bool = sig.verify(publicKey, [msgHash]);
+      expect(success).toBeTruthy();
+    });
 
-      expect(success).toBeTruthy;
+    it('Create & proove account being leaf of a tree', async () => {
+      // Given
+      const leafToValidate = 0;
+      const accounts: PublicKey[] = [];
+      const tree: MerkleTree = new MerkleTree(MyMerkleWitness.height);
+
+      // Compute and add leaves to the tree
+      for (let i = 0; i < 4; i++) {
+        const publicKey: PublicKey = PrivateKey.random().toPublicKey();
+        accounts.push(publicKey);
+        tree.setLeaf(BigInt(i), CircuitString.fromString(publicKey.toBase58()).hash());
+      }
+
+      // Get witness for leaf
+      const witness: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(leafToValidate)));
+      
+      // Proove leaf is part of the tree
+      witness.calculateRoot(tree.getNode(0, BigInt(leafToValidate))).assertEquals(tree.getRoot())
     });
   });
 });
