@@ -81,14 +81,23 @@ describe('AnonMultiSig', () => {
   
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
       // Given
-      const admin: PublicKey = deployerAccount.toPublicKey();
-      const demoRoot: Field = Field(1);
+      const admin: Field = CircuitString.fromString(deployerAccount.toPublicKey().toBase58()).hash();
       const numberOfMembers: Field = Field(4);
       const minimalQuorum: Field = Field(3);
-  
+      // Initialize the tree
+      tree = new MerkleTree(MyMerkleWitness.height);
+      // Add leaves to the tree
+      for(let i = 0; i < Number(numberOfMembers); i++) {
+        const publicKey: PublicKey = PrivateKey.random().toPublicKey();
+        leaves.push(publicKey);
+        tree.setLeaf(BigInt(i), CircuitString.fromString(publicKey.toBase58()).hash());
+      }
+
+      const root: Field = tree.getRoot();
+
       // When
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.initialize(admin, demoRoot, numberOfMembers, minimalQuorum);
+        zkAppInstance.initialize(admin, root, numberOfMembers, minimalQuorum);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
@@ -96,24 +105,24 @@ describe('AnonMultiSig', () => {
   
       // Then
       expect(zkAppInstance.admin.get()).toEqual(admin);
-      expect(zkAppInstance.membersTreeRoot.get()).toEqual(demoRoot);
+      expect(zkAppInstance.membersTreeRoot.get()).toEqual(root);
       expect(zkAppInstance.numberOfMembers.get()).toEqual(numberOfMembers);
       expect(zkAppInstance.minimalQuorum.get()).toEqual(minimalQuorum);
     });
   
     it('correctly sets the new admin', async () => {
       // Given
-      const newadmin: PublicKey = account1.toPublicKey();
+      const newadmin: Field = CircuitString.fromString(account1.toPublicKey().toBase58()).hash();
       // Expiration timestamp which is valid for 2 minutes after created
       const expirationTimestamp: UInt64 = Mina.getNetworkState().timestamp.add(UInt64.from(120));
       // Compute message hash
-      const msgHash: Field = CircuitString.fromString(newadmin.toString().concat(expirationTimestamp.toString())).hash();
+      const msgHash: Field = Poseidon.hash(Encoding.stringToFields(newadmin.toString().concat(expirationTimestamp.toString())));
       // Deployer is current admin
-      const signature: Signature = Signature.create(deployerAccount, msgHash.toFields());
+      const signature: Signature = Signature.create(deployerAccount, [msgHash]);
   
-      // Create and send transaction
+      // When
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.setAdmin(newadmin, signature, expirationTimestamp);
+        zkAppInstance.setAdmin(deployerAccount.toPublicKey(), newadmin, signature, expirationTimestamp);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
@@ -122,6 +131,36 @@ describe('AnonMultiSig', () => {
       // Then
       expect(zkAppInstance.admin.get()).toEqual(newadmin);
     });
+
+    it('correctly makes a proposal', async () => {
+      // Given
+      const memberSlot: number = 0;
+      const member: PublicKey = leaves[memberSlot];
+      const path: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(memberSlot)));
+      const proposalHash: Field = CircuitString.fromString("Test1").hash();
+
+      const nonce = zkAppInstance.proposalNonce.get();
+
+      // Hash large strings using Encoding and Poseidon
+      const msg: Field = Poseidon.hash(
+        Encoding.stringToFields(
+          member.toBase58().concat(proposalHash.toString()).concat(nonce.add(1).toString())
+        )
+      );
+      // Create signature
+      const signature: Signature = Signature.create(account1, [msg]);
+
+      // Create and send transaction
+      const txn = await Mina.transaction(deployerAccount, () => {
+        zkAppInstance.makeProposal(account1.toPublicKey(), member, path, proposalHash, signature);
+      });
+      await txn.prove();
+      txn.sign([zkAppPrivateKey]);
+      await txn.send();
+
+      // Then
+      expect(zkAppInstance.proposalHash.get()).toEqual(proposalHash);
+    })
   });
 
   describe('General POC tests', () => {
