@@ -139,7 +139,7 @@ describe('AnonMultiSig', () => {
       const path: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(memberSlot)));
       const proposalHash: Field = CircuitString.fromString("Test1").hash();
 
-      const nonce = zkAppInstance.proposalNonce.get();
+      const nonce = zkAppInstance.proposalId.get();
 
       // Hash large strings using Encoding and Poseidon
       const msg: Field = Poseidon.hash(
@@ -152,7 +152,7 @@ describe('AnonMultiSig', () => {
 
       // Create and send transaction
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.makeProposal(account1.toPublicKey(), member, path, proposalHash, signature);
+        zkAppInstance.makeProposal(account1.toPublicKey(), member, path, signature, proposalHash);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
