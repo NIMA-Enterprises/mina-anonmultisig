@@ -27,7 +27,6 @@ export class AnonMultiSig extends SmartContract {
   @state(Field) proposalId = State<Field>();
   @state(Field) proposalHash = State<Field>();
   @state(Field) proposalVotes = State<Field>();
-  @state(Field) proposalNonce = State<Field>();
   
   deploy(args: DeployArgs) {
     super.deploy(args);
@@ -121,10 +120,10 @@ export class AnonMultiSig extends SmartContract {
    * @param admin is public key of contract administrator
    * @param member is user who's identity privilege needs to be verified
    * @param path is proof of user belonging in the members tree
-   * @param proposalHash is identification hash of proposed action
    * @param signature is administrator's confirmation signature
+   * @param proposalHash is identification hash of proposed action
    */
-  @method makeProposal(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, proposalHash: Field, signature: Signature) {
+  @method makeProposal(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, signature: Signature, proposalHash: Field) {
     // Verify admin
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
@@ -151,15 +150,15 @@ export class AnonMultiSig extends SmartContract {
     proposalHash.isZero().assertFalse();
 
     // Increase proposal nonce by 1
-    const proposalNonce: Field = this.proposalNonce.get();
-    this.proposalNonce.assertEquals(proposalNonce);
-    const newNonce: Field = proposalNonce.add(1);
-    this.proposalNonce.set(newNonce);
+    const proposalId: Field = this.proposalId.get();
+    this.proposalId.assertEquals(proposalId);
+    const newProposalId: Field = proposalId.add(1);
+    this.proposalId.set(newProposalId);
 
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(proposalHash.toString()).concat(newNonce.toString())
+        member.toBase58().concat(proposalHash.toString()).concat(newProposalId.toString())
       )
     );
 
