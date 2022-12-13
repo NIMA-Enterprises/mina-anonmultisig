@@ -116,7 +116,7 @@ describe('AnonMultiSig', () => {
       // Expiration timestamp which is valid for 2 minutes after created
       const expirationTimestamp: UInt64 = Mina.getNetworkState().timestamp.add(UInt64.from(120));
       // Compute message hash
-      const msgHash: Field = Poseidon.hash(Encoding.stringToFields(newadmin.toString().concat(expirationTimestamp.toString())));
+      const msgHash: Field = Poseidon.hash(Encoding.stringToFields(newadmin.toString().concat(expirationTimestamp.toString()).concat(zkAppAddress.toBase58())));
       // Deployer is current admin
       const signature: Signature = Signature.create(deployerAccount, [msgHash]);
   
@@ -144,7 +144,7 @@ describe('AnonMultiSig', () => {
       // Hash large strings using Encoding and Poseidon
       const msg: Field = Poseidon.hash(
         Encoding.stringToFields(
-          member.toBase58().concat(proposalHash.toString()).concat(nonce.add(1).toString())
+          member.toBase58().concat(proposalHash.toString()).concat(nonce.add(1).toString()).concat(zkAppAddress.toBase58())
         )
       );
       // Create signature
