@@ -190,10 +190,14 @@ export class AnonMultiSig extends SmartContract {
     // Assert member being part of the tree
     path.calculateRoot(CircuitString.fromString(member.toBase58()).hash()).assertEquals(membersTreeRoot);
 
+    // Assert current proposal id
+    const proposalId: Field = this.proposalId.get();
+    this.proposalId.assertEquals(proposalId);
+
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(vote.toString()).concat(this.proposalId.get().toString()).concat(this.address.toBase58())
+        member.toBase58().concat(vote.toString()).concat(proposalId.toString()).concat(this.address.toBase58())
       )
     );
 
