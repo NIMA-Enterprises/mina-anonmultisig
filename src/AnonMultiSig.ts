@@ -168,4 +168,49 @@ export class AnonMultiSig extends SmartContract {
     // Set new proposal hash
     this.proposalHash.set(proposalHash);
   }
+
+  /**
+   * @notice Function to instantiate a vote on active proposal
+   * @param admin is public key of contract administrator
+   * @param member is user who's identity privilege needs to be verified
+   * @param path is proof of user belonging in the members tree
+   * @param signature is administrator's confirmation signature
+   * @param vote is users support for current proposal for/true or against/false
+   */
+  @method vote(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, signature: Signature, vote: Field) {
+    // Verify admin
+    const contractAdmin: Field = this.admin.get();
+    this.admin.assertEquals(contractAdmin);
+    contractAdmin.assertEquals(CircuitString.fromString(admin.toBase58()).hash());
+
+    // Assert current root
+    const membersTreeRoot: Field = this.membersTreeRoot.get();
+    this.membersTreeRoot.assertEquals(membersTreeRoot);
+
+    // Assert member being part of the tree
+    path.calculateRoot(CircuitString.fromString(member.toBase58()).hash()).assertEquals(membersTreeRoot);
+
+    // Reconstruct signed message
+    const msg: Field = Poseidon.hash(
+      Encoding.stringToFields(
+        member.toBase58().concat(vote.toString()).concat(this.proposalId.get().toString())
+      )
+    );
+
+    // Verify Signature
+    signature.verify(admin, [msg]).assertTrue();
+
+    // Assert current votes state
+    const proposalVotes: Field = this.proposalVotes.get();
+    this.proposalVotes.assertEquals(proposalVotes);
+
+    // TODO: Check if user already voted
+
+    // TODO: Assign vote value to specific bit pair in votes state
+
+    // TODO: Introduce reducers in order to enable multiple vote actions in the same block
+
+    // Set new proposal hash
+    this.proposalVotes.set(proposalVotes);
+  }
 }
