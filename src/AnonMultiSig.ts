@@ -100,7 +100,7 @@ export class AnonMultiSig extends SmartContract {
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        newAdmin.toString().concat(expirationTimestamp.toString())
+        newAdmin.toString().concat(expirationTimestamp.toString()).concat(this.address.toBase58())
       )
     );
 
@@ -158,7 +158,7 @@ export class AnonMultiSig extends SmartContract {
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(proposalHash.toString()).concat(newProposalId.toString())
+        member.toBase58().concat(proposalHash.toString()).concat(newProposalId.toString()).concat(this.address.toBase58())
       )
     );
 
@@ -193,7 +193,7 @@ export class AnonMultiSig extends SmartContract {
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(vote.toString()).concat(this.proposalId.get().toString())
+        member.toBase58().concat(vote.toString()).concat(this.proposalId.get().toString()).concat(this.address.toBase58())
       )
     );
 
