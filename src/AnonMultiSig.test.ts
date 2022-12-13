@@ -161,6 +161,38 @@ describe('AnonMultiSig', () => {
       // Then
       expect(zkAppInstance.proposalHash.get()).toEqual(proposalHash);
     })
+
+    it('correctly instantiates a vote', async () => {
+      // Given
+      const memberSlot: number = 0;
+      const member: PublicKey = leaves[memberSlot];
+      const path: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(memberSlot)));
+      const vote: Field = Field(1);
+      const proposalId: Field = zkAppInstance.proposalId.get();
+
+      // TODO: Compute expected votes state after transaction
+      let updatedVotesState = zkAppInstance.proposalVotes.get();
+
+      // Compute message to sign
+      const msg: Field = Poseidon.hash(
+        Encoding.stringToFields(
+          member.toBase58().concat(vote.toString()).concat(proposalId.toString()).concat(zkAppAddress.toBase58())
+        )
+      );
+      // Sign message with admin pk
+      const signature: Signature = Signature.create(account1, [msg]);
+
+      // Create and send transaction
+      const txn = await Mina.transaction(deployerAccount, () => {
+        zkAppInstance.vote(account1.toPublicKey(), member, path, signature, vote);
+      });
+      await txn.prove();
+      txn.sign([zkAppPrivateKey]);
+      await txn.send();
+
+      // Then
+      expect(zkAppInstance.proposalVotes.get()).toEqual(updatedVotesState);
+    });
   });
 
   describe('General POC tests', () => {
