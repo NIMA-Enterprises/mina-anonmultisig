@@ -118,12 +118,12 @@ export class AnonMultiSig extends SmartContract {
   /**
    * @notice Function to make new proposal / initiate new voting session
    * @param admin is public key of contract administrator
-   * @param member is user who's identity privilege needs to be verified
+   * @param memberHash is hash of user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    * @param proposalHash is identification hash of proposed action
    */
-  @method makeProposal(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, signature: Signature, proposalHash: Field) {
+  @method makeProposal(admin: PublicKey, memberHash: Field, path: MyMerkleWitness, signature: Signature, proposalHash: Field) {
     // Verify admin
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
@@ -134,7 +134,7 @@ export class AnonMultiSig extends SmartContract {
     this.membersTreeRoot.assertEquals(membersTreeRoot);
 
     // Assert member being part of the tree
-    path.calculateRoot(CircuitString.fromString(member.toBase58()).hash()).assertEquals(membersTreeRoot);
+    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
 
     // Assert votes state is empty
     const proposalVotes: Field = this.proposalVotes.get();
@@ -158,7 +158,7 @@ export class AnonMultiSig extends SmartContract {
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(proposalHash.toString()).concat(newProposalId.toString()).concat(this.address.toBase58())
+        memberHash.toString().concat(proposalHash.toString()).concat(newProposalId.toString()).concat(this.address.toBase58())
       )
     );
 
@@ -172,12 +172,12 @@ export class AnonMultiSig extends SmartContract {
   /**
    * @notice Function to instantiate a vote on active proposal
    * @param admin is public key of contract administrator
-   * @param member is user who's identity privilege needs to be verified
+   * @param memberHash is hash of user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    * @param vote is users support for current proposal for/true or against/false
    */
-  @method vote(admin: PublicKey, member: PublicKey, path: MyMerkleWitness, signature: Signature, vote: Field) {
+  @method vote(admin: PublicKey, memberHash: Field, path: MyMerkleWitness, signature: Signature, vote: Field) {
     // Verify admin
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
@@ -188,7 +188,7 @@ export class AnonMultiSig extends SmartContract {
     this.membersTreeRoot.assertEquals(membersTreeRoot);
 
     // Assert member being part of the tree
-    path.calculateRoot(CircuitString.fromString(member.toBase58()).hash()).assertEquals(membersTreeRoot);
+    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
 
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
@@ -197,7 +197,7 @@ export class AnonMultiSig extends SmartContract {
     // Reconstruct signed message
     const msg: Field = Poseidon.hash(
       Encoding.stringToFields(
-        member.toBase58().concat(vote.toString()).concat(proposalId.toString()).concat(this.address.toBase58())
+        memberHash.toString().concat(vote.toString()).concat(proposalId.toString()).concat(this.address.toBase58())
       )
     );
 

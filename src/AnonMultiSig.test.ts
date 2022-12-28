@@ -20,7 +20,6 @@ import {
 class MyMerkleWitness extends MerkleWitness(8) {}
 
 let tree: MerkleTree;
-let leaves: PublicKey[] = [];
 
 let proofsEnabled: boolean = false;
 
@@ -89,7 +88,6 @@ describe('AnonMultiSig', () => {
       // Add leaves to the tree
       for(let i = 0; i < Number(numberOfMembers); i++) {
         const publicKey: PublicKey = PrivateKey.random().toPublicKey();
-        leaves.push(publicKey);
         tree.setLeaf(BigInt(i), CircuitString.fromString(publicKey.toBase58()).hash());
       }
 
@@ -135,7 +133,7 @@ describe('AnonMultiSig', () => {
     it('correctly makes a proposal', async () => {
       // Given
       const memberSlot: number = 0;
-      const member: PublicKey = leaves[memberSlot];
+      const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
       const path: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(memberSlot)));
       const proposalHash: Field = CircuitString.fromString("Test1").hash();
 
@@ -144,7 +142,7 @@ describe('AnonMultiSig', () => {
       // Hash large strings using Encoding and Poseidon
       const msg: Field = Poseidon.hash(
         Encoding.stringToFields(
-          member.toBase58().concat(proposalHash.toString()).concat(nonce.add(1).toString()).concat(zkAppAddress.toBase58())
+          memberHash.toString().concat(proposalHash.toString()).concat(nonce.add(1).toString()).concat(zkAppAddress.toBase58())
         )
       );
       // Create signature
@@ -152,7 +150,7 @@ describe('AnonMultiSig', () => {
 
       // Create and send transaction
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.makeProposal(account1.toPublicKey(), member, path, signature, proposalHash);
+        zkAppInstance.makeProposal(account1.toPublicKey(), memberHash, path, signature, proposalHash);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
@@ -165,7 +163,7 @@ describe('AnonMultiSig', () => {
     it('correctly instantiates a vote', async () => {
       // Given
       const memberSlot: number = 0;
-      const member: PublicKey = leaves[memberSlot];
+      const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
       const path: MyMerkleWitness = new MyMerkleWitness(tree.getWitness(BigInt(memberSlot)));
       const vote: Field = Field(1);
       const proposalId: Field = zkAppInstance.proposalId.get();
@@ -176,7 +174,7 @@ describe('AnonMultiSig', () => {
       // Compute message to sign
       const msg: Field = Poseidon.hash(
         Encoding.stringToFields(
-          member.toBase58().concat(vote.toString()).concat(proposalId.toString()).concat(zkAppAddress.toBase58())
+          memberHash.toString().concat(vote.toString()).concat(proposalId.toString()).concat(zkAppAddress.toBase58())
         )
       );
       // Sign message with admin pk
@@ -184,7 +182,7 @@ describe('AnonMultiSig', () => {
 
       // Create and send transaction
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.vote(account1.toPublicKey(), member, path, signature, vote);
+        zkAppInstance.vote(account1.toPublicKey(), memberHash, path, signature, vote);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
