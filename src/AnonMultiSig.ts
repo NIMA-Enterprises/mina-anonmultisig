@@ -10,16 +10,13 @@ import {
   Permissions,
   Signature,
   PublicKey,
-  CircuitString,
   MerkleWitness,
   Poseidon,
-  Encoding
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
 
 export class AnonMultiSig extends SmartContract {
-
   @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
   @state(Field) numberOfMembers = State<Field>();
@@ -27,7 +24,7 @@ export class AnonMultiSig extends SmartContract {
   @state(Field) proposalId = State<Field>();
   @state(Field) proposalHash = State<Field>();
   @state(Field) proposalVotes = State<Field>();
-  
+
   deploy(args: DeployArgs) {
     super.deploy(args);
     this.setPermissions({
@@ -43,9 +40,13 @@ export class AnonMultiSig extends SmartContract {
    * @param membersTreeRoot is root of a merkle tree containing all members
    * @param numberOfMembers is number of members contained in the tree
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
-   * @dev 182 is maximum number of votes that can be fit into single word of memory
    */
-  @method initialize(admin: Field, membersTreeRoot: Field, numberOfMembers: Field, minimalQuorum: Field) {
+  @method initialize(
+    admin: Field,
+    membersTreeRoot: Field,
+    numberOfMembers: Field,
+    minimalQuorum: Field
+  ) {
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
@@ -65,7 +66,6 @@ export class AnonMultiSig extends SmartContract {
     this.numberOfMembers.assertEquals(currentNumberOfMembers);
     currentNumberOfMembers.isZero().assertTrue();
     numberOfMembers.isZero().assertFalse();
-    numberOfMembers.assertLte(Field(182));
     this.numberOfMembers.set(Field(numberOfMembers));
 
     // Set minimal quorum
@@ -86,26 +86,42 @@ export class AnonMultiSig extends SmartContract {
    * @param signature is expireable signature provided by the current admin
    * @param expirationTimestamp is timestamp until which signature is valid
    */
-  @method setAdmin(oldAdmin: PublicKey, newAdmin: Field, signature: Signature, expirationTimestamp: UInt64) {
+  @method setAdmin(
+    oldAdmin: PublicKey,
+    newAdmin: Field,
+    signature: Signature,
+    expirationTimestamp: UInt64
+  ) {
     // Get and assert current admin
     const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
-    currentAdmin.assertEquals(CircuitString.fromString(oldAdmin.toBase58()).hash());
+    currentAdmin.assertEquals(Poseidon.hash(oldAdmin.toFields()));
 
     // Require that new admin is not empty
     newAdmin.isZero().assertFalse();
     // Require new admin is different than the current one
     currentAdmin.equals(newAdmin).assertFalse();
 
+    // Define msg fields array with new admin
+    let msg: Field[] = [newAdmin];
+
+    // Iterate over timestamp fields and push them to msg fields array
+    const expTimestampFields: Field[] = expirationTimestamp.toFields();
+    for (let i = 0; i < expTimestampFields.length; i++) {
+      msg.push(expTimestampFields[i]);
+    }
+
+    // Iterate over address fields and push them to msg fields array
+    const thisAddressFields: Field[] = this.address.toFields();
+    for (let i = 0; i < thisAddressFields.length; i++) {
+      msg.push(thisAddressFields[i]);
+    }
+
     // Reconstruct signed message
-    const msg: Field = Poseidon.hash(
-      Encoding.stringToFields(
-        newAdmin.toString().concat(expirationTimestamp.toString()).concat(this.address.toBase58())
-      )
-    );
+    const msgHash: Field = Poseidon.hash(msg);
 
     // Make sure signature is valid
-    const isSignatureValid: Bool = signature.verify(oldAdmin, [msg]);
+    const isSignatureValid: Bool = signature.verify(oldAdmin, [msgHash]);
     isSignatureValid.assertTrue();
 
     // Require signature has not expired
@@ -123,11 +139,17 @@ export class AnonMultiSig extends SmartContract {
    * @param signature is administrator's confirmation signature
    * @param proposalHash is identification hash of proposed action
    */
-  @method makeProposal(admin: PublicKey, memberHash: Field, path: MyMerkleWitness, signature: Signature, proposalHash: Field) {
+  @method makeProposal(
+    admin: PublicKey,
+    memberHash: Field,
+    path: MyMerkleWitness,
+    signature: Signature,
+    proposalHash: Field
+  ) {
     // Verify admin
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(CircuitString.fromString(admin.toBase58()).hash());
+    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
 
     // Assert current root
     const membersTreeRoot: Field = this.membersTreeRoot.get();
@@ -155,15 +177,20 @@ export class AnonMultiSig extends SmartContract {
     const newProposalId: Field = proposalId.add(1);
     this.proposalId.set(newProposalId);
 
+    // Define msg fields array with memberHash, proposalHash and Id
+    let msg: Field[] = [memberHash, proposalHash, newProposalId];
+
+    // Iterate over address fields and push them to msg fields array
+    const thisAddressFields: Field[] = this.address.toFields();
+    for (let i = 0; i < thisAddressFields.length; i++) {
+      msg.push(thisAddressFields[i]);
+    }
+
     // Reconstruct signed message
-    const msg: Field = Poseidon.hash(
-      Encoding.stringToFields(
-        memberHash.toString().concat(proposalHash.toString()).concat(newProposalId.toString()).concat(this.address.toBase58())
-      )
-    );
+    const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msg]).assertTrue();
+    signature.verify(admin, [msgHash]).assertTrue();
 
     // Set new proposal hash
     this.proposalHash.set(proposalHash);
@@ -177,11 +204,17 @@ export class AnonMultiSig extends SmartContract {
    * @param signature is administrator's confirmation signature
    * @param vote is users support for current proposal for/true or against/false
    */
-  @method vote(admin: PublicKey, memberHash: Field, path: MyMerkleWitness, signature: Signature, vote: Field) {
+  @method vote(
+    admin: PublicKey,
+    memberHash: Field,
+    path: MyMerkleWitness,
+    signature: Signature,
+    vote: Field
+  ) {
     // Verify admin
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(CircuitString.fromString(admin.toBase58()).hash());
+    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
 
     // Assert current root
     const membersTreeRoot: Field = this.membersTreeRoot.get();
@@ -194,15 +227,20 @@ export class AnonMultiSig extends SmartContract {
     const proposalId: Field = this.proposalId.get();
     this.proposalId.assertEquals(proposalId);
 
+    // Define msg fields array with memberHash, vote and proposalId
+    let msg: Field[] = [memberHash, vote, proposalId];
+
+    // Iterate over address fields and push them to msg fields array
+    const thisAddressFields: Field[] = this.address.toFields();
+    for (let i = 0; i < thisAddressFields.length; i++) {
+      msg.push(thisAddressFields[i]);
+    }
+
     // Reconstruct signed message
-    const msg: Field = Poseidon.hash(
-      Encoding.stringToFields(
-        memberHash.toString().concat(vote.toString()).concat(proposalId.toString()).concat(this.address.toBase58())
-      )
-    );
+    const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msg]).assertTrue();
+    signature.verify(admin, [msgHash]).assertTrue();
 
     // Assert current votes state
     const proposalVotes: Field = this.proposalVotes.get();
