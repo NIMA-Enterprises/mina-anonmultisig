@@ -1,4 +1,4 @@
-import { AnonMultiSig } from './AnonMultiSigMock.js';
+import { AnonMultiSigMock } from './AnonMultiSigMock.js';
 import * as AnonMultiSigLib from './AnonMultiSigLib.js';
 import * as dotenv from 'dotenv';
 import { Mina, isReady, PrivateKey, shutdown } from 'snarkyjs';
@@ -17,7 +17,7 @@ Mina.setActiveInstance(Berkeley);
 const zpk: string = process.env.MZPK || '';
 const zkAppPrivateKey: PrivateKey = PrivateKey.fromBase58(zpk);
 
-const zkAppInstance: AnonMultiSig = new AnonMultiSig(
+const zkAppInstance: AnonMultiSigMock = new AnonMultiSigMock(
   zkAppPrivateKey.toPublicKey()
 );
 
