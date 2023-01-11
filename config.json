@@ -6,6 +6,12 @@
       "keyPath": "keys/berkeley.json",
       "fee": "0.1",
       "smartContract": "AnonMultiSig"
+    },
+    "berkeleymock": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/berkeleymock.json",
+      "fee": "0.1",
+      "smartContract": "AnonMultiSigMock"
     }
   }
 }
