@@ -21,6 +21,8 @@ const zkAppInstance: AnonMultiSigMock = new AnonMultiSigMock(
   zkAppPrivateKey.toPublicKey()
 );
 
+await AnonMultiSigMock.compile();
+
 // When
 const txn = await Mina.transaction(
   {
