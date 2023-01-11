@@ -30,7 +30,7 @@ export class AnonMultiSig extends SmartContract {
     this.setPermissions({
       ...Permissions.default(),
       editState: Permissions.proofOrSignature(),
-      // setVerificationKey: Permissions.impossible() // Make contract non-upgradeable
+      setVerificationKey: Permissions.impossible(), // Make contract non-upgradeable
     });
   }
 
