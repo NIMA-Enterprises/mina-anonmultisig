@@ -22,7 +22,7 @@ let Berkeley = Mina.Network('https://proxy.berkeley.minaexplorer.com/graphql');
 
 Mina.setActiveInstance(Berkeley);
 
-const zpk: string = process.env.ZPK || '';
+const zpk: string = process.env.MZPK || '';
 const zkAppPrivateKey: PrivateKey = PrivateKey.fromBase58(zpk);
 
 const zkAppInstance: AnonMultiSig = new AnonMultiSig(
@@ -39,7 +39,7 @@ const numberOfMembers: Field = Field(4);
 const minimalQuorum: Field = Field(3);
 
 // Initialize the tree
-AnonMultiSigLib.generateTree(tree, numberOfMembers, false);
+AnonMultiSigLib.generateTree(tree, numberOfMembers, true);
 
 // Get root
 const root: Field = tree.getRoot();
