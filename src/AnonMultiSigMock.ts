@@ -34,7 +34,9 @@ export class AnonMultiSig extends SmartContract {
     });
   }
 
-  //
+  /**
+   * @notice Mock method to enable reinitialization
+   */
   @method reset() {
     const val: Field = Field(0);
     this.admin.set(val);
