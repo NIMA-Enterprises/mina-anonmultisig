@@ -16,7 +16,7 @@ import {
 
 class MyMerkleWitness extends MerkleWitness(8) {}
 
-export class AnonMultiSig extends SmartContract {
+export class AnonMultiSigMock extends SmartContract {
   @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
   @state(Field) numberOfMembers = State<Field>();
