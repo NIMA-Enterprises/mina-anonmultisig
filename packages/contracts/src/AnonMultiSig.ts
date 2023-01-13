@@ -103,19 +103,7 @@ export class AnonMultiSig extends SmartContract {
     currentAdmin.equals(newAdmin).assertFalse();
 
     // Define msg fields array with new admin
-    let msg: Field[] = [newAdmin];
-
-    // Iterate over timestamp fields and push them to msg fields array
-    const expTimestampFields: Field[] = expirationTimestamp.toFields();
-    for (let i = 0; i < expTimestampFields.length; i++) {
-      msg.push(expTimestampFields[i]);
-    }
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -178,13 +166,7 @@ export class AnonMultiSig extends SmartContract {
     this.proposalId.set(newProposalId);
 
     // Define msg fields array with memberHash, proposalHash and Id
-    let msg: Field[] = [memberHash, proposalHash, newProposalId];
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [memberHash, proposalHash, newProposalId, ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -228,13 +210,7 @@ export class AnonMultiSig extends SmartContract {
     this.proposalId.assertEquals(proposalId);
 
     // Define msg fields array with memberHash, vote and proposalId
-    let msg: Field[] = [memberHash, vote, proposalId];
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [memberHash, vote, proposalId, ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
