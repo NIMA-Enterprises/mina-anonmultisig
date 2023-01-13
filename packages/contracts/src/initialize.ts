@@ -6,9 +6,10 @@ import {
   isReady,
   PrivateKey,
   Field,
-  CircuitString,
+  Poseidon,
   MerkleTree,
   shutdown,
+  PublicKey,
 } from 'snarkyjs';
 
 dotenv.config({ path: './.env' });
@@ -31,10 +32,11 @@ const zkAppInstance: AnonMultiSig = new AnonMultiSig(
 
 let tree: MerkleTree = new MerkleTree(8);
 
+// Define AnonMultiSig admin
+const adminPk: PublicKey = PublicKey.fromBase58("B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4");
+
 // Given
-const admin: Field = CircuitString.fromString(
-  deployerPrivateKey.toPublicKey().toBase58()
-).hash();
+const admin: Field = Poseidon.hash(adminPk.toFields());
 const numberOfMembers: Field = Field(4);
 const minimalQuorum: Field = Field(3);
 
