@@ -18,12 +18,14 @@ export function generateTree(
   if (Math.pow(2, tree.height) < Number(numberOfMembers))
     throw new Error('Too many members.');
 
+  console.log(`Private Key - Public Key - Leaf (Public Key Poseidon Hash)`);
   // Add leaves to the tree
   for (let i = 0; i < Number(numberOfMembers); i++) {
     const privateKey: PrivateKey = PrivateKey.random();
     const publicKey: PublicKey = privateKey.toPublicKey();
-    tree.setLeaf(BigInt(i), Poseidon.hash(publicKey.toFields()));
-    if (log) console.log(privateKey.toBase58(), publicKey.toBase58());
+    const leaf: Field = Poseidon.hash(publicKey.toFields());
+    tree.setLeaf(BigInt(i), leaf);
+    if (log) console.log(`${privateKey.toBase58()} - ${publicKey.toBase58()} - ${leaf.toString()}`);
   }
 }
 
