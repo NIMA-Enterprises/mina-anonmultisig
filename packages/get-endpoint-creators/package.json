@@ -1,0 +1,17 @@
+{
+	"name": "get-endpoint-creators",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"axios": "^1.2.0"
+	},
+	"devDependencies": {
+		"@reduxjs/toolkit": "^1.9.1"
+	}
+}
