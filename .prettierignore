@@ -1,14 +1,8 @@
-# NodeJS
 node_modules
-build
-coverage
-.husky
-
-# Editor
-.vscode
-
-# System
 .DS_Store
-
-# Misc
-LICENSE
+dist
+dist-ssr
+*.local
+node_modules/*
+.cache
+*.md

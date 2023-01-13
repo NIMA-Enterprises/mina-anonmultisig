@@ -1,0 +1,21 @@
+{
+	"name": "contract-service-anonmultisig",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"@reduxjs/toolkit": "^1.9.1",
+		"contracts": "*",
+		"get-endpoint-creators": "*",
+		"query-function-creators": "*",
+		"snarkyjs": "^0.7.3",
+		"wallet-connection": "*",
+		"zod": "^3.19.1"
+	},
+	"devDependencies": {}
+}
