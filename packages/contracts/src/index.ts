@@ -1,3 +1,5 @@
-import { AnonMultiSig } from './AnonMultiSig.js';
+import { AnonMultiSig } from './AnonMultiSig';
+import { AnonMultiSigMock } from './AnonMultiSigMock';
 
 export { AnonMultiSig };
+export { AnonMultiSigMock };

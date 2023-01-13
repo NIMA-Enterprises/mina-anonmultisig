@@ -3,6 +3,7 @@
 	"private": true,
 	"version": "1.0.0",
 	"scripts": {
+		"prestart": "yarn workspace contracts run build",
 		"start": "vite --mode prod",
 		"start:https": "DEBUG=vite:plugin:mkcert HTTPS=true vite --mode prod --host",
 		"build": "yarn run clean:vite && vite build --mode prod",
