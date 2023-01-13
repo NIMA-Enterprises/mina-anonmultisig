@@ -20,7 +20,10 @@
     "prepare": "husky install",
     "test": "node --experimental-vm-modules --experimental-wasm-modules --experimental-wasm-threads node_modules/jest/bin/jest.js",
     "testw": "node --experimental-vm-modules --experimental-wasm-modules --experimental-wasm-threads node_modules/jest/bin/jest.js --watch",
-    "lint": "npx eslint src/* --fix"
+    "lint": "npx eslint src/* --fix",
+		"clean": "yarn clean:build && yarn clean:yarn",
+		"clean:build": "rimraf ./build",
+		"clean:yarn": "rimraf ./node_modules"
   },
   "lint-staged": {
     "**/*": [
