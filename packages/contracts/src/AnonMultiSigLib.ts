@@ -18,7 +18,7 @@ export function generateTree(
   if (Math.pow(2, tree.height) < Number(numberOfMembers))
     throw new Error('Too many members.');
 
-  console.log(`Private Key - Public Key - Leaf (Public Key Poseidon Hash)`);
+  if (log) console.log(`Private Key - Public Key - Leaf (Public Key Poseidon Hash)`);
   // Add leaves to the tree
   for (let i = 0; i < Number(numberOfMembers); i++) {
     const privateKey: PrivateKey = PrivateKey.random();
