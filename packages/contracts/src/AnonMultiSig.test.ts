@@ -14,6 +14,8 @@ import {
   UInt64,
   MerkleTree,
   MerkleWitness,
+  MerkleMap,
+  MerkleMapWitness,
   Poseidon,
 } from 'snarkyjs';
 
@@ -69,7 +71,7 @@ describe('AnonMultiSig', () => {
     setTimeout(shutdown, 0);
   });
 
-  describe('General flow tests', () => {
+ describe('General flow tests', () => {
     it('generates and deploys the `AnonMultiSig` smart contract', async () => {
       // Deploy zkApp
       await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
@@ -276,6 +278,37 @@ describe('AnonMultiSig', () => {
       witness
         .calculateRoot(tree.getNode(0, BigInt(leafToValidate)))
         .assertEquals(tree.getRoot());
+    });
+
+    it('Create & proove key-value pair being present in a MerkleMap', async () => {
+      // Given
+      const leafToValidate = 0;
+      const accounts: PublicKey[] = [];
+      const map: MerkleMap = new MerkleMap();
+
+      // Compute and add leaves to the tree
+      for (let i = 0; i < 4; i++) {
+        const publicKey: PublicKey = PrivateKey.random().toPublicKey();
+        accounts.push(publicKey);
+        map.set(
+          CircuitString.fromString(publicKey.toBase58()).hash(),
+          Field(1)
+        );
+      }
+
+      // Compute a key
+      const key = CircuitString.fromString(accounts[leafToValidate].toBase58()).hash();
+
+      // Get witness for leaf
+      const witness: MerkleMapWitness = map.getWitness(key);
+
+      // Proove leaf is part of the tree
+      let witnessRoot: Field;
+      let witnessKey: Field;
+      [witnessRoot, witnessKey] = witness.computeRootAndKey(Field(1));
+
+      witnessRoot.assertEquals(map.getRoot());
+      witnessKey.assertEquals(key);
     });
   });
 });
