@@ -24,6 +24,7 @@ class MyMerkleWitness extends MerkleWitness(8) {}
 await isReady;
 
 let tree: MerkleTree = new MerkleTree(MyMerkleWitness.height);
+let map: MerkleMap = new MerkleMap();
 
 let proofsEnabled: boolean = false;
 
@@ -82,8 +83,8 @@ describe('AnonMultiSig', () => {
       const admin: Field = Poseidon.hash(
         deployerAccount.toPublicKey().toFields()
       );
-      const numberOfMembers: Field = Field(4);
-      const minimalQuorum: Field = Field(3);
+      const numberOfMembers = Field(4);
+      const minimalQuorum = Field(3);
 
       // Initialize the tree
       AnonMultiSigLib.generateTree(tree, numberOfMembers, false);
@@ -93,16 +94,16 @@ describe('AnonMultiSig', () => {
 
       // When
       const txn = await Mina.transaction(deployerAccount, () => {
-        zkAppInstance.initialize(admin, root, numberOfMembers, minimalQuorum);
+        zkAppInstance.initialize(admin, root, minimalQuorum);
       });
       await txn.prove();
       txn.sign([zkAppPrivateKey]);
       await txn.send();
 
       // Then
+      //console.log(zkAppInstance.votesAgainst.get());
       expect(zkAppInstance.admin.get()).toEqual(admin);
       expect(zkAppInstance.membersTreeRoot.get()).toEqual(root);
-      expect(zkAppInstance.numberOfMembers.get()).toEqual(numberOfMembers);
       expect(zkAppInstance.minimalQuorum.get()).toEqual(minimalQuorum);
     });
 
@@ -114,17 +115,8 @@ describe('AnonMultiSig', () => {
         UInt64.from(120)
       );
       // Compute message
-      let msg: Field[] = [newAdmin];
-      // Iterate over timestamp fields and push them to msg fields array
-      const expTimestampFields: Field[] = expirationTimestamp.toFields();
-      for (let i = 0; i < expTimestampFields.length; i++) {
-        msg.push(expTimestampFields[i]);
-      }
-      // Iterate over address fields and push them to msg fields array
-      const thisAddressFields: Field[] = zkAppAddress.toFields();
-      for (let i = 0; i < thisAddressFields.length; i++) {
-        msg.push(thisAddressFields[i]);
-      }
+      let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...zkAppAddress.toFields()];
+      
       // Compute message hash
       const msgHash: Field = Poseidon.hash(msg);
       // Deployer is current admin
@@ -159,13 +151,7 @@ describe('AnonMultiSig', () => {
       const proposalId: Field = zkAppInstance.proposalId.get();
 
       // Define msg fields array with memberHash, proposalHash and Id
-      let msg: Field[] = [memberHash, proposalHash, proposalId.add(1)];
-
-      // Iterate over address fields and push them to msg fields array
-      const thisAddressFields: Field[] = zkAppAddress.toFields();
-      for (let i = 0; i < thisAddressFields.length; i++) {
-        msg.push(thisAddressFields[i]);
-      }
+      let msg: Field[] = [memberHash, proposalHash, proposalId.add(1), ...zkAppAddress.toFields()];
 
       let msgHash = Poseidon.hash(msg);
 
@@ -201,7 +187,7 @@ describe('AnonMultiSig', () => {
       const proposalId: Field = zkAppInstance.proposalId.get();
 
       // TODO: Adapt to vote state changes before final checks
-      let updatedVotesState = zkAppInstance.proposalVotes.get();
+      let oldVotesState = zkAppInstance.votesMerkleMapRoot.get();
 
       // Define msg fields array with memberHash, vote and proposalId
       let msg: Field[] = [memberHash, vote, proposalId];
@@ -211,6 +197,8 @@ describe('AnonMultiSig', () => {
       for (let i = 0; i < thisAddressFields.length; i++) {
         msg.push(thisAddressFields[i]);
       }
+
+      const mapWitness = map.getWitness(memberHash);
 
       // Reconstruct signed message
       const msgHash: Field = Poseidon.hash(msg);
@@ -224,6 +212,7 @@ describe('AnonMultiSig', () => {
           memberHash,
           path,
           signature,
+          mapWitness,
           vote
         );
       });
@@ -231,9 +220,18 @@ describe('AnonMultiSig', () => {
       txn.sign([zkAppPrivateKey]);
       await txn.send();
 
+      map.set(memberHash, vote);
+      const newWitness = map.getWitness(memberHash);
+      const [newRoot, ] = newWitness.computeRootAndKey(vote);
+
       // Then
-      expect(zkAppInstance.proposalVotes.get()).toEqual(updatedVotesState);
+      zkAppInstance.votesMerkleMapRoot.get().equals(oldVotesState).assertFalse();
+      expect(zkAppInstance.votesMerkleMapRoot.get()).toEqual(newRoot);
     });
+
+    // TODO: Test for voting twice by same member
+    // TODO: Test making proposal while there is an active proposal
+    // TODO: Refactor tests
   });
 
   describe('General POC tests', () => {
