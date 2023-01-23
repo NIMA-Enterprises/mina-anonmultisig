@@ -186,6 +186,7 @@ export class AnonMultiSig extends SmartContract {
     memberHash: Field,
     path: MyMerkleWitness,
     signature: Signature,
+    mapPath: MerkleMapWitness,
     vote: Field
   ) {
     // Verify admin
@@ -213,17 +214,19 @@ export class AnonMultiSig extends SmartContract {
     // Verify Signature
     signature.verify(admin, [msgHash]).assertTrue();
 
-    // Assert current votes state
-    const proposalVotes: Field = this.proposalVotes.get();
-    this.proposalVotes.assertEquals(proposalVotes);
+    // Assert votes map root state
+    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
+    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
 
-    // TODO: Check if user already voted
+    // Verify pair using witness
+    // TODO: Consider letting memebers override votes
+    const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(Field(0));
+    votesMerkleMapRoot.assertEquals(witnessRoot, "Invalid witness / Already voted.");
+    memberHash.assertEquals(witnessKey);
 
-    // TODO: Assign vote value to specific bit pair in votes state
+    const [newVotesMerkleMapRoot, ] = mapPath.computeRootAndKey(vote);
+    this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
     // TODO: Introduce reducers in order to enable multiple vote actions in the same block
-
-    // Set new proposal hash
-    this.proposalVotes.set(proposalVotes);
   }
 }
