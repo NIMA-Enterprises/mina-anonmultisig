@@ -37,8 +37,8 @@ const adminPk: PublicKey = PublicKey.fromBase58("B62qrjGayCU1U4xAmzDfUVxMsf2FEuX
 
 // Given
 const admin: Field = Poseidon.hash(adminPk.toFields());
-const numberOfMembers: Field = Field(4);
-const minimalQuorum: Field = Field(3);
+const numberOfMembers = Field(4);
+const minimalQuorum = Field(3);
 
 // Initialize the tree
 AnonMultiSigLib.generateTree(tree, numberOfMembers, true);
@@ -54,7 +54,7 @@ const txn = await Mina.transaction(
     memo: 'Initialize',
   },
   () => {
-    zkAppInstance.initialize(admin, root, numberOfMembers, minimalQuorum);
+    zkAppInstance.initialize(admin, root, minimalQuorum);
   }
 );
 await txn.prove();
