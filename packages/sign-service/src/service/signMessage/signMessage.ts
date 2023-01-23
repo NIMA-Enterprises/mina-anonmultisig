@@ -9,9 +9,11 @@ const signMessage = async ({ message }: { message: string }) => {
 		throw new Error("No mina provider found");
 	}
 
-	const { signature } = await window.mina.signMessage({
-		message,
-	});
+	const signature = "HARDCODED_CLIENT_SIGNATURE";
+
+	// const { signature } = await window.mina.signMessage({
+	// 	message,
+	// });
 
 	return signature;
 };

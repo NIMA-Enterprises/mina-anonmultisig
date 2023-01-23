@@ -1,1 +1,1 @@
-export * from "./getVoteSignature";
+export * from "./getMakeProposalSignatureFromBackend";

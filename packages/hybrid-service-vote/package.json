@@ -14,7 +14,9 @@
 		"query-function-creators": "*",
 		"get-endpoint-creators": "*",
 		"sign-service": "*",
-		"backend-service-vote": "*"
+		"backend-service-vote": "*",
+		"snarkyjs": "^0.7.3",
+		"contract-service-anonmultisig": "*"
 	},
 	"devDependencies": {}
 }

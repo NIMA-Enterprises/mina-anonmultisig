@@ -2,21 +2,23 @@ import React from "react";
 
 import { useResetMutation } from "contract-service-anonmultisig";
 import { Button } from "flowbite-react";
-import { useVoteMutation } from "hybrid-service-vote";
+import { useMakeProposalMutation } from "hybrid-service-vote";
 import { useAccount } from "wagmi";
 
 const OrganizationsPage = () => {
 	const { address, isConnected } = useAccount();
 	const [reset, { isLoading: resetIsLoading }] = useResetMutation();
-	const [vote, { isLoading, isError, data }] = useVoteMutation();
+	const [makeProposal, { isLoading, isError, data }] =
+		useMakeProposalMutation();
 	const clickHandler = () => {
 		if (!isConnected || !address) {
 			return;
 		}
 
-		vote({
-			organizationId: "12",
-			userAddress: address,
+		makeProposal({
+			contractAddress:
+				"B62qppADTWBiiQZMxhejakZ6Vbog4tFZNsTM7bPiZ3UzSBwzNZhD81r",
+			memberPublicKeyString: address,
 		});
 	};
 	return (

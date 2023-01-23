@@ -4,15 +4,15 @@ import { schema } from "./schema";
 import { createRequestQueryFunction } from "query-function-creators";
 import { signMessage } from "sign-service";
 
-const getVoteSignature = createRequestQueryFunction({
+const getMakeProposalSignatureFromBackend = createRequestQueryFunction({
 	getAxiosRequestConfig: ({
 		signature,
 		userAddress,
-		organizationId,
+		message,
 	}: {
 		signature: Awaited<ReturnType<typeof signMessage>>;
 		userAddress: string;
-		organizationId: string;
+		message: string;
 	}) => ({
 		// url: `${
 		// 	import.meta.env.BACKEND_SERVICE_VOTE_BASE_URL
@@ -22,6 +22,7 @@ const getVoteSignature = createRequestQueryFunction({
 		data: {
 			signature,
 			user_address: userAddress,
+			message,
 		},
 	}),
 	schema,
@@ -32,10 +33,11 @@ const getVoteSignature = createRequestQueryFunction({
 
 declare global {
 	interface Window {
-		getVoteSignature: typeof getVoteSignature;
+		getMakeProposalSignatureFromBackend: typeof getMakeProposalSignatureFromBackend;
 	}
 }
 
-window.getVoteSignature = getVoteSignature;
+window.getMakeProposalSignatureFromBackend =
+	getMakeProposalSignatureFromBackend;
 
-export { getVoteSignature };
+export { getMakeProposalSignatureFromBackend };

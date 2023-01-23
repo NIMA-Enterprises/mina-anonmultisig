@@ -1,4 +1,5 @@
 import { reset } from "../service";
+import { makeProposal } from "../service/makeProposal";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getEndpointCreators } from "get-endpoint-creators";
 
@@ -10,8 +11,10 @@ export const contractServiceAnonMultiSig = createApi({
 
 		return {
 			reset: createMutation(reset),
+			makeProposal: createMutation(makeProposal),
 		};
 	},
 });
 
-export const { useResetMutation } = contractServiceAnonMultiSig;
+export const { useResetMutation, useMakeProposalMutation } =
+	contractServiceAnonMultiSig;

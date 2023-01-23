@@ -1,4 +1,4 @@
-import { vote } from "../service";
+import { makeProposal } from "../service";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getEndpointCreators } from "get-endpoint-creators";
 
@@ -9,9 +9,9 @@ export const hybridServiceVote = createApi({
 		const { createMutation } = getEndpointCreators(builder);
 
 		return {
-			vote: createMutation(vote),
+			makeProposal: createMutation(makeProposal),
 		};
 	},
 });
 
-export const { useVoteMutation } = hybridServiceVote;
+export const { useMakeProposalMutation } = hybridServiceVote;
