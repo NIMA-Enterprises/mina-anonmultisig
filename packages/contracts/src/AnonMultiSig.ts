@@ -12,6 +12,8 @@ import {
   PublicKey,
   MerkleWitness,
   Poseidon,
+  MerkleMap,
+  MerkleMapWitness,
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -137,15 +139,17 @@ export class AnonMultiSig extends SmartContract {
     // Assert member being part of the tree
     path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
 
-    // Assert votes state is empty
-    const proposalVotes: Field = this.proposalVotes.get();
-    this.proposalVotes.assertEquals(proposalVotes);
-    proposalVotes.isZero().assertTrue();
-
     // Assert proposal hash state is empty
     const currentProposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(currentProposalHash);
     currentProposalHash.isZero().assertTrue();
+
+    // Assert votes state is empty
+    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
+    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
+    votesMerkleMapRoot.isZero().assertTrue();
+    // set votes merkle map root to default/empty map root
+    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
 
     // Assert new proposal hash is not empty field
     proposalHash.isZero().assertFalse();
