@@ -19,11 +19,12 @@ class MyMerkleWitness extends MerkleWitness(8) {}
 export class AnonMultiSig extends SmartContract {
   @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
-  @state(Field) numberOfMembers = State<Field>();
   @state(Field) minimalQuorum = State<Field>();
-  @state(Field) proposalId = State<Field>();
+  @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
   @state(Field) proposalHash = State<Field>();
-  @state(Field) proposalVotes = State<Field>();
+  @state(Field) votesMerkleMapRoot = State<Field>();
+  @state(Field) votesFor = State<Field>();
+  @state(Field) votesAgainst = State<Field>();
 
   deploy(args: DeployArgs) {
     super.deploy(args);
@@ -38,13 +39,11 @@ export class AnonMultiSig extends SmartContract {
    * @notice Function to initialize 'AnonMultiSig' smart contract
    * @param admin is public key of initial administrator
    * @param membersTreeRoot is root of a merkle tree containing all members
-   * @param numberOfMembers is number of members contained in the tree
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
    */
   @method initialize(
     admin: Field,
     membersTreeRoot: Field,
-    numberOfMembers: Field,
     minimalQuorum: Field
   ) {
     // Set root
@@ -61,19 +60,11 @@ export class AnonMultiSig extends SmartContract {
     admin.isZero().assertFalse();
     this.admin.set(admin);
 
-    // Set initial number of members
-    const currentNumberOfMembers: Field = this.numberOfMembers.get();
-    this.numberOfMembers.assertEquals(currentNumberOfMembers);
-    currentNumberOfMembers.isZero().assertTrue();
-    numberOfMembers.isZero().assertFalse();
-    this.numberOfMembers.set(Field(numberOfMembers));
-
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
     currentMinimalQuorum.isZero().assertTrue();
     minimalQuorum.isZero().assertFalse();
-    minimalQuorum.assertLt(numberOfMembers);
     this.minimalQuorum.set(minimalQuorum);
 
     // Require zkApp signature
@@ -113,7 +104,7 @@ export class AnonMultiSig extends SmartContract {
     isSignatureValid.assertTrue();
 
     // Require signature has not expired
-    this.network.timestamp.assertBetween(UInt64.from(0), expirationTimestamp);
+    this.network.timestamp.assertBetween(UInt64.zero, expirationTimestamp);
 
     // Set new admin
     this.admin.set(newAdmin);
