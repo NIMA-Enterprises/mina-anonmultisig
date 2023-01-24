@@ -22,7 +22,7 @@ const createAnonMultiSigContract = async ({
 
 	const zkAppAddress = PublicKey.fromBase58(contractAddress);
 	const zkAppInstance = new AnonMultiSig(zkAppAddress);
-	// await AnonMultiSig.compile();
+	await AnonMultiSig.compile();
 
 	const response = await fetchAccount({ publicKey: zkAppAddress });
 

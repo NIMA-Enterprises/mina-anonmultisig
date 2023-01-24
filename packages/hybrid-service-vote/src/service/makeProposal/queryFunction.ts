@@ -1,4 +1,7 @@
-import { getMakeProposalSignatureFromBackend } from "backend-service-vote";
+import {
+	getMakeProposalSignatureFromBackend,
+	getMakeProposalWitnessFromBackend,
+} from "backend-service-vote";
 import {
 	makeProposal as makeProposalContract,
 	readStateFields,
@@ -66,6 +69,15 @@ const signMakeProposal = async ({
 		...PublicKey.fromBase58(contractAddress).toFields(),
 	]).toString();
 
+	console.log({
+		"where": "signMakeProposal",
+		memberHash,
+		proposalHash,
+		proposalId,
+		"PublicKey.fromBase58(contractAddress).toFields()":
+			PublicKey.fromBase58(contractAddress).toFields(),
+	});
+
 	const signature = await signMessage({ message });
 
 	return { signature, message, proposalHash, memberHash, proposalId };
@@ -94,11 +106,24 @@ const makeProposal = async ({
 
 	console.log({ clientSignature, backendSignature });
 
+	const pathAsObject = await getMakeProposalWitnessFromBackend({
+		memberSlot: 3,
+		membersAsTreeHash: [
+			"9794717151907877491130547487159084488860951500526287861484343000356746805262",
+			"7184638548920122554848146653618293028991673482369627447784523928859087497580",
+			"9890227877459599186545630513334637692696672008293094748028883479122359986285",
+			"13967865996993149057597971750733889585078557392624882243815826449893072304183",
+		],
+	});
+
 	await makeProposalContract({
 		admin: "B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4",
 		contractAddress,
 		memberPkString: memberPublicKeyString,
-		pathAsObject: hardcodedPathAsObject,
+		pathAsObject: pathAsObject.result.map(({ isLeft, sibling }) => ({
+			isLeft,
+			sibling: Field.fromJSON(sibling),
+		})),
 		signature: backendSignature,
 	});
 };

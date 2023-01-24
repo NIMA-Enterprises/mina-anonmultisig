@@ -43,20 +43,15 @@ const makeProposal = async ({
 
 	console.log(new Date());
 
-	console.log("Start creating contract. This can take a while. Please wait.");
 	const { zkAppInstance } = await createAnonMultiSigContract({
 		contractAddress,
 	});
-	console.log("Contract created");
-	console.log({ zkAppInstance });
-	console.log(new Date());
 
 	const adminPK = PublicKey.fromBase58(admin);
 	const memberHashZK = Poseidon.hash(
 		PublicKey.fromBase58(memberPkString).toFields(),
 	);
-	// @ts-ignore
-	const path = MyMerkleWitness.fromObject(pathAsObject);
+	const path = new MyMerkleWitness(pathAsObject);
 	const proposalHash: Field = CircuitString.fromString("Test1").hash();
 
 	console.log({
