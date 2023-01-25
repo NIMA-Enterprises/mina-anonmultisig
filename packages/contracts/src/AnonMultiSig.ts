@@ -1,7 +1,6 @@
 import {
   Field,
   SmartContract,
-  Bool,
   UInt64,
   state,
   State,
@@ -102,8 +101,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Make sure signature is valid
-    const isSignatureValid: Bool = signature.verify(oldAdmin, [msgHash]);
-    isSignatureValid.assertTrue();
+    signature.verify(oldAdmin, [msgHash]).assertTrue();
 
     // Require signature has not expired
     this.network.timestamp.assertBetween(UInt64.zero, expirationTimestamp);
@@ -128,16 +126,10 @@ export class AnonMultiSig extends SmartContract {
     proposalHash: Field
   ) {
     // Verify admin
-    const contractAdmin: Field = this.admin.get();
-    this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+    this.verifyAdmin(admin);
 
-    // Assert current root
-    const membersTreeRoot: Field = this.membersTreeRoot.get();
-    this.membersTreeRoot.assertEquals(membersTreeRoot);
-
-    // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
+    // Verify membership
+    this.verifyMembership(memberHash, path);
 
     // Assert proposal hash state is empty
     const currentProposalHash: Field = this.proposalHash.get();
@@ -190,16 +182,10 @@ export class AnonMultiSig extends SmartContract {
     vote: Field
   ) {
     // Verify admin
-    const contractAdmin: Field = this.admin.get();
-    this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+    this.verifyAdmin(admin);
 
-    // Assert current root
-    const membersTreeRoot: Field = this.membersTreeRoot.get();
-    this.membersTreeRoot.assertEquals(membersTreeRoot);
-
-    // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
+    // Verify membership
+    this.verifyMembership(memberHash, path);
 
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
@@ -228,5 +214,28 @@ export class AnonMultiSig extends SmartContract {
     this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
     // TODO: Introduce reducers in order to enable multiple vote actions in the same block
+  }
+
+  /**
+   * @notice function to verify admin
+   * @param admin public key to be verified
+   */
+  verifyAdmin(admin: PublicKey) {
+    const contractAdmin: Field = this.admin.get();
+    this.admin.assertEquals(contractAdmin);
+    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+  }
+
+  /**
+   * @notice function to verify membership in a tree
+   * @param memberHash member public key hash
+   * @param path merkle witness for the member
+   */
+  verifyMembership(memberHash: Field, path: MyMerkleWitness) {
+    // Assert current root
+    const membersTreeRoot: Field = this.membersTreeRoot.get();
+    this.membersTreeRoot.assertEquals(membersTreeRoot);
+    // Assert member being part of the tree
+    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
   }
 }
