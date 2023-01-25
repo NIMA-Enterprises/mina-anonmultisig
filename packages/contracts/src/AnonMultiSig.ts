@@ -13,6 +13,7 @@ import {
   Poseidon,
   MerkleMap,
   MerkleMapWitness,
+  Circuit
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -213,6 +214,22 @@ export class AnonMultiSig extends SmartContract {
     const [newVotesMerkleMapRoot, ] = mapPath.computeRootAndKey(vote);
     this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
+    // Make sure vote is valid
+    vote.equals(Field(1)).or(vote.equals(Field(2))).assertTrue();
+
+    // If vote is for increment votesFor
+    const voteFor = Circuit.if(vote === Field(1), Field(1), Field(0));
+    const votesFor = this.votesFor.get();
+    this.votesFor.assertEquals(votesFor);
+    this.votesFor.set(votesFor.add(voteFor));
+
+    // If vote is against increment votesAgainst
+    const voteAgainst = Circuit.if(vote === Field(2), Field(1), Field(0));
+    const votesAgainst = this.votesAgainst.get();
+    this.votesAgainst.assertEquals(votesAgainst);
+    this.votesAgainst.set(votesAgainst.add(voteAgainst));
+
+    // TODO: Merge smaller globals into same state field
     // TODO: Introduce reducers in order to enable multiple vote actions in the same block
   }
 
