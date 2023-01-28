@@ -32,8 +32,7 @@ export class AnonMultiSig extends SmartContract {
     super.deploy(args);
     this.setPermissions({
       ...Permissions.default(),
-      editState: Permissions.proofOrSignature(),
-      setVerificationKey: Permissions.impossible(), // Make contract non-upgradeable
+      editState: Permissions.proofOrSignature()
     });
   }
 
@@ -48,6 +47,17 @@ export class AnonMultiSig extends SmartContract {
     membersTreeRoot: Field,
     minimalQuorum: Field
   ) {
+    // Set proper permissions for non-upgradeable decentralized voting
+    this.setPermissions({
+      ...Permissions.default(),
+      send: Permissions.proof(),
+      setDelegate: Permissions.proof(), // TODO: Introduce stake delegation for AnonMultiSig
+      setPermissions: Permissions.impossible(), // Disable permission changes
+      setVerificationKey: Permissions.impossible(), // Make contract non-upgradeable
+      setZkappUri: Permissions.impossible(),
+      setTokenSymbol: Permissions.impossible()
+    });
+
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
