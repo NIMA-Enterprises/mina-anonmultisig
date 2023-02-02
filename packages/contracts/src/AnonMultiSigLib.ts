@@ -35,12 +35,12 @@ export async function deploy(
   feePayerKey: PrivateKey
 ) {
   const txn = await Mina.transaction(
-    { feePayerKey, fee: TX_FEE, memo: 'Deploy' },
+    { sender: feePayerKey.toPublicKey(), fee: TX_FEE, memo: 'Deploy' },
     () => {
       zkAppInstance.deploy({ zkappKey: zkAppPrivateKey });
     }
   );
   await txn.prove();
-  txn.sign([zkAppPrivateKey]);
+  txn.sign([feePayerKey, zkAppPrivateKey]);
   await txn.send();
 }
