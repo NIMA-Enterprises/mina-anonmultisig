@@ -5044,6 +5044,11 @@ combined-stream@^1.0.6, combined-stream@^1.0.8, combined-stream@~1.0.6:
   dependencies:
     delayed-stream "~1.0.0"
 
+comlink@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/comlink/-/comlink-4.4.0.tgz#8a9cd441faf4023721bcf178e7d7075246ec172a"
+  integrity sha512-kId+c11FgiQdqMcgaBICxZ9UgQtE2xefMCmcpY/O9qGr0mRRN/8exnR4YcOCk2mVRPkTMiuPXvGt/vog+2nMfA==
+
 commander@^2.20.3, commander@^2.8.1:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"

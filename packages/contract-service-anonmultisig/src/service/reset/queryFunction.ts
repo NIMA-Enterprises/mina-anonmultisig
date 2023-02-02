@@ -1,34 +1,17 @@
-import { createAnonMultiSigContract } from "../../createAnonMultiSigContract";
+import { GenerateTransactionProofType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
-import { Field, Mina } from "snarkyjs";
+import { wrap } from "comlink";
 import { wagmiClient } from "wallet-connection";
 
 const reset = async () => {
-	console.log(new Date());
-
-	console.log("Start creating contract. This can take a while. Please wait.");
-	const { zkAppInstance } = await createAnonMultiSigContract({
-		contractAddress:
-			"B62qppADTWBiiQZMxhejakZ6Vbog4tFZNsTM7bPiZ3UzSBwzNZhD81r",
-	});
-	console.log("Contract created");
-	console.log({ zkAppInstance });
-	console.log(new Date());
-
-	console.log("Start creating Mina.transaction");
-
-	const txn = await Mina.transaction(() => zkAppInstance.reset());
-	console.log("Mina.transaction created");
-	console.log({ txn });
-	console.log(new Date());
-
-	console.log(
-		"Start creating transaction proof. This can take a while. Please wait.",
+	const { generateTransactionProof } = wrap<GenerateTransactionProofType>(
+		new Worker(new URL("./worker.ts", import.meta.url), {
+			name: "generateTransactionProof_reset",
+			type: "module",
+		}),
 	);
-	await txn.prove();
-	console.log("Proof created");
-	console.log({ txn, json: txn.toJSON() });
-	console.log(new Date());
+
+	const { proof } = await generateTransactionProof();
 
 	console.log("Wallet transaction started");
 	const provider =
@@ -36,7 +19,7 @@ const reset = async () => {
 	console.log({ provider });
 
 	const { hash } = await provider.sendTransaction({
-		transaction: txn.toJSON(),
+		transaction: proof,
 	});
 
 	console.log("Wallet transaction finished");

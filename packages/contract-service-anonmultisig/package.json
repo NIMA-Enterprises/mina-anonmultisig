@@ -10,6 +10,7 @@
 	},
 	"dependencies": {
 		"@reduxjs/toolkit": "^1.9.1",
+		"comlink": "^4.4.0",
 		"contracts": "*",
 		"get-endpoint-creators": "*",
 		"query-function-creators": "*",
