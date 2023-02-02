@@ -48,6 +48,6 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "snarkyjs": "^0.7.1"
+    "snarkyjs": "^0.8.0"
   }
 }
