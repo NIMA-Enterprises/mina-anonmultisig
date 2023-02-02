@@ -30,7 +30,7 @@ export class AnonMultiSig extends SmartContract {
 
   deploy(args: DeployArgs) {
     super.deploy(args);
-    this.setPermissions({
+    this.account.permissions.set({
       ...Permissions.default(),
       editState: Permissions.proofOrSignature()
     });
@@ -48,7 +48,7 @@ export class AnonMultiSig extends SmartContract {
     minimalQuorum: Field
   ) {
     // Set proper permissions for non-upgradeable decentralized voting
-    this.setPermissions({
+    this.account.permissions.set({
       ...Permissions.default(),
       send: Permissions.proof(),
       setDelegate: Permissions.proof(), // TODO: Introduce stake delegation for AnonMultiSig

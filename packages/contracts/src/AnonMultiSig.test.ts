@@ -39,17 +39,19 @@ async function localDeploy(
   zkAppPrivateKey: PrivateKey,
   deployerAccount: PrivateKey
 ) {
-  const txn = await Mina.transaction(deployerAccount, () => {
-    AccountUpdate.fundNewAccount(deployerAccount);
+  const deployerPublicKey = deployerAccount.toPublicKey();
+  const txn = await Mina.transaction(deployerPublicKey, () => {
+    AccountUpdate.fundNewAccount(deployerPublicKey);
     zkAppInstance.deploy({ zkappKey: zkAppPrivateKey });
   });
   await txn.prove();
-  txn.sign([zkAppPrivateKey]);
+  txn.sign([deployerAccount, zkAppPrivateKey]);
   await txn.send();
 }
 
 describe('AnonMultiSig', () => {
   let deployerAccount: PrivateKey,
+    deployerAddress: PublicKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
     zkAppInstance: AnonMultiSig;
@@ -60,6 +62,7 @@ describe('AnonMultiSig', () => {
     if (proofsEnabled) AnonMultiSig.compile();
 
     [deployerAccount, account1] = createLocalBlockchain();
+    deployerAddress = deployerAccount.toPublicKey();
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
     zkAppInstance = new AnonMultiSig(zkAppAddress);
@@ -81,7 +84,7 @@ describe('AnonMultiSig', () => {
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
       // Given
       const admin: Field = Poseidon.hash(
-        deployerAccount.toPublicKey().toFields()
+        deployerAddress.toFields()
       );
       const numberOfMembers = Field(4);
       const minimalQuorum = Field(3);
@@ -93,11 +96,11 @@ describe('AnonMultiSig', () => {
       const root: Field = tree.getRoot();
 
       // When
-      const txn = await Mina.transaction(deployerAccount, () => {
+      const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.initialize(admin, root, minimalQuorum);
       });
       await txn.prove();
-      txn.sign([zkAppPrivateKey]);
+      txn.sign([deployerAccount, zkAppPrivateKey]);
       await txn.send();
 
       // Then
@@ -123,16 +126,16 @@ describe('AnonMultiSig', () => {
       const signature: Signature = Signature.create(deployerAccount, [msgHash]);
 
       // When
-      const txn = await Mina.transaction(deployerAccount, () => {
+      const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.setAdmin(
-          deployerAccount.toPublicKey(),
+          deployerAddress,
           newAdmin,
           signature,
           expirationTimestamp
         );
       });
       await txn.prove();
-      txn.sign([zkAppPrivateKey]);
+      txn.sign([deployerAccount]);
       await txn.send();
 
       // Then
@@ -159,7 +162,7 @@ describe('AnonMultiSig', () => {
       const signature: Signature = Signature.create(account1, [msgHash]);
 
       // Create and send transaction
-      const txn = await Mina.transaction(deployerAccount, () => {
+      const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.makeProposal(
           account1.toPublicKey(),
           memberHash,
@@ -169,7 +172,7 @@ describe('AnonMultiSig', () => {
         );
       });
       await txn.prove();
-      txn.sign([zkAppPrivateKey]);
+      txn.sign([deployerAccount, zkAppPrivateKey]);
       await txn.send();
 
       // Then
@@ -206,7 +209,7 @@ describe('AnonMultiSig', () => {
       const signature: Signature = Signature.create(account1, [msgHash]);
 
       // Create and send transaction
-      const txn = await Mina.transaction(deployerAccount, () => {
+      const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.vote(
           account1.toPublicKey(),
           memberHash,
@@ -217,7 +220,7 @@ describe('AnonMultiSig', () => {
         );
       });
       await txn.prove();
-      txn.sign([zkAppPrivateKey]);
+      txn.sign([deployerAccount, zkAppPrivateKey]);
       await txn.send();
 
       map.set(memberHash, vote);

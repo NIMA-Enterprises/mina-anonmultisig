@@ -49,7 +49,7 @@ const root: Field = tree.getRoot();
 // When
 const txn = await Mina.transaction(
   {
-    feePayerKey: deployerPrivateKey,
+    sender: deployerPrivateKey.toPublicKey(),
     fee: AnonMultiSigLib.TX_FEE,
     memo: 'Initialize',
   },
