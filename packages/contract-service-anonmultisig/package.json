@@ -13,7 +13,7 @@
 		"contracts": "*",
 		"get-endpoint-creators": "*",
 		"query-function-creators": "*",
-		"snarkyjs": "^0.7.3",
+		"snarkyjs": "0.8.0",
 		"wallet-connection": "*",
 		"zod": "^3.19.1"
 	},

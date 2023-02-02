@@ -9,12 +9,6 @@ window.reset = reset;
 window.createAnonMultiSigContract = createAnonMultiSigContract;
 window.makeProposal = makeProposal;
 
-const test = async () => {
-	const { zkAppInstance } = await createAnonMultiSigContract();
-
-	// zkAppInstance.
-};
-
 const App: React.FC = () => {
 	return <AppRoutes />;
 };

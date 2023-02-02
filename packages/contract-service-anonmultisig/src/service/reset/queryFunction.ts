@@ -7,7 +7,10 @@ const reset = async () => {
 	console.log(new Date());
 
 	console.log("Start creating contract. This can take a while. Please wait.");
-	const { zkAppInstance } = await createAnonMultiSigContract();
+	const { zkAppInstance } = await createAnonMultiSigContract({
+		contractAddress:
+			"B62qppADTWBiiQZMxhejakZ6Vbog4tFZNsTM7bPiZ3UzSBwzNZhD81r",
+	});
 	console.log("Contract created");
 	console.log({ zkAppInstance });
 	console.log(new Date());

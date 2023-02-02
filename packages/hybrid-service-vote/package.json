@@ -15,7 +15,7 @@
 		"get-endpoint-creators": "*",
 		"sign-service": "*",
 		"backend-service-vote": "*",
-		"snarkyjs": "^0.7.3",
+		"snarkyjs": "0.8.0",
 		"contract-service-anonmultisig": "*"
 	},
 	"devDependencies": {}
