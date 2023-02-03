@@ -7,7 +7,7 @@ import { makeProposal } from "hybrid-service-vote";
 
 // window.reset = reset;
 window.createAnonMultiSigContract = createAnonMultiSigContract;
-window.makeProposal = makeProposal;
+console.log({ where: "App", makeProposal });
 
 const App: React.FC = () => {
 	return <AppRoutes />;

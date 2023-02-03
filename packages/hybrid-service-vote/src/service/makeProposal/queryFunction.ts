@@ -120,10 +120,7 @@ const makeProposal = async ({
 		admin: "B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4",
 		contractAddress,
 		memberPkString: memberPublicKeyString,
-		pathAsObject: pathAsObject.result.map(({ isLeft, sibling }) => ({
-			isLeft,
-			sibling: Field.fromJSON(sibling),
-		})),
+		pathAsObject: pathAsObject.result,
 		signature: backendSignature,
 	});
 };

@@ -1,11 +1,12 @@
-import * as tmp from "snarkyjs";
 import { AnonMultiSigMock as AnonMultiSig } from "contracts";
 import { Mina, PublicKey, fetchAccount, isReady } from "snarkyjs";
 
 const createAnonMultiSigContract = async ({
 	contractAddress,
+	skipCompile = false,
 }: {
 	contractAddress: string;
+	skipCompile?: boolean;
 }): Promise<{
 	zkAppAccount: Awaited<ReturnType<typeof fetchAccount>>["account"];
 	zkAppAddress: ReturnType<typeof PublicKey["fromBase58"]>;
@@ -22,7 +23,10 @@ const createAnonMultiSigContract = async ({
 
 	const zkAppAddress = PublicKey.fromBase58(contractAddress);
 	const zkAppInstance = new AnonMultiSig(zkAppAddress);
-	await AnonMultiSig.compile();
+
+	if (!skipCompile) {
+		await AnonMultiSig.compile();
+	}
 
 	const response = await fetchAccount({ publicKey: zkAppAddress });
 
