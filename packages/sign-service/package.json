@@ -10,8 +10,9 @@
 	},
 	"dependencies": {
 		"@reduxjs/toolkit": "^1.9.1",
-		"zod": "^3.19.1",
-		"wallet-connection": "*"
+		"mina-signer": "^1.7.0",
+		"wallet-connection": "*",
+		"zod": "^3.19.1"
 	},
 	"devDependencies": {}
 }

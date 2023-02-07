@@ -11,22 +11,22 @@ const reset = async () => {
 		}),
 	);
 
-	const { proof } = await generateTransactionProof();
+	const { proof } = await generateTransactionProof(window.PRIVATE_KEY);
 
-	console.log("Wallet transaction started");
-	const provider =
-		(await wagmiClient.connector?.getProvider()) as MinaProvider;
-	console.log({ provider });
+	// console.log("Wallet transaction started");
+	// const provider =
+	// 	(await wagmiClient.connector?.getProvider()) as MinaProvider;
+	// console.log({ provider });
 
-	const { hash } = await provider.sendTransaction({
-		transaction: proof,
-	});
+	// const { hash } = await provider.sendTransaction({
+	// 	transaction: proof,
+	// });
 
-	console.log("Wallet transaction finished");
-	console.log({
-		hash,
-		url: `https://berkeley.minaexplorer.com/transaction/${hash}`,
-	});
+	// console.log("Wallet transaction finished");
+	// console.log({
+	// 	hash,
+	// 	url: `https://berkeley.minaexplorer.com/transaction/${hash}`,
+	// });
 };
 
 declare global {
