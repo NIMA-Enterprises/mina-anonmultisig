@@ -11683,7 +11683,7 @@ slice-ansi@^4.0.0:
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
 
-snarkyjs@0.8.0:
+snarkyjs@0.8.0, snarkyjs@^0.8.0:
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.8.0.tgz#d9045a8b5fac18417f3fc2ce52ac65447695103d"
   integrity sha512-vQsHoBzOXTA0X0S+iYmFAlDjz2iWq43bK5qm5Qt3KvM0ME9iwun+aZY/Y9OgWfio+D7JDVPSFRIUKCCOhWgTNw==

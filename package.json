@@ -7,7 +7,9 @@
 			"apps/*"
 		],
 		"nohoist": [
-			"**/flowbite"
+			"**/flowbite",
+			"**/snarkyjs",
+			"**/tslib"
 		]
 	},
 	"browserslist": {
