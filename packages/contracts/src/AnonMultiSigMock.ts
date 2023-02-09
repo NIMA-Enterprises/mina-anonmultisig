@@ -1,7 +1,6 @@
 import {
   Field,
   SmartContract,
-  Bool,
   UInt64,
   state,
   State,
@@ -12,6 +11,9 @@ import {
   PublicKey,
   MerkleWitness,
   Poseidon,
+  MerkleMap,
+  MerkleMapWitness,
+  Circuit
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -19,48 +21,53 @@ class MyMerkleWitness extends MerkleWitness(8) {}
 export class AnonMultiSigMock extends SmartContract {
   @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
-  @state(Field) numberOfMembers = State<Field>();
   @state(Field) minimalQuorum = State<Field>();
-  @state(Field) proposalId = State<Field>();
+  @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
   @state(Field) proposalHash = State<Field>();
-  @state(Field) proposalVotes = State<Field>();
+  @state(Field) votesMerkleMapRoot = State<Field>();
 
   deploy(args: DeployArgs) {
     super.deploy(args);
-    this.setPermissions({
+    this.account.permissions.set({
       ...Permissions.default(),
-      editState: Permissions.proofOrSignature(),
-      // setVerificationKey: Permissions.impossible() // Make contract non-upgradeable
+      editState: Permissions.proofOrSignature()
     });
   }
 
   /**
    * @notice Mock method to enable reinitialization
    */
-  @method reset() {
-    const val: Field = Field(0);
-    this.admin.set(val);
-    this.membersTreeRoot.set(val);
-    this.numberOfMembers.set(val);
-    this.minimalQuorum.set(val);
-    this.proposalId.set(val);
-    this.proposalHash.set(val);
-    this.proposalVotes.set(val);
-  }
+    @method reset() {
+      const val: Field = Field(0);
+      this.admin.set(val);
+      this.membersTreeRoot.set(val);
+      this.minimalQuorum.set(val);
+      this.proposalId.set(val);
+      this.proposalHash.set(val);
+    }
 
   /**
    * @notice Function to initialize 'AnonMultiSig' smart contract
    * @param admin is public key of initial administrator
    * @param membersTreeRoot is root of a merkle tree containing all members
-   * @param numberOfMembers is number of members contained in the tree
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
    */
   @method initialize(
     admin: Field,
     membersTreeRoot: Field,
-    numberOfMembers: Field,
     minimalQuorum: Field
   ) {
+    // Set proper permissions for non-upgradeable decentralized voting
+    this.account.permissions.set({
+      ...Permissions.default(),
+      send: Permissions.proof(),
+      setDelegate: Permissions.proof(), // TODO: Introduce stake delegation for AnonMultiSig
+      setPermissions: Permissions.proofOrSignature(), // Disable permission changes
+      setVerificationKey: Permissions.proofOrSignature(), // Make contract non-upgradeable
+      setZkappUri: Permissions.proofOrSignature(),
+      setTokenSymbol: Permissions.impossible()
+    });
+
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
@@ -75,25 +82,17 @@ export class AnonMultiSigMock extends SmartContract {
     admin.isZero().assertFalse();
     this.admin.set(admin);
 
-    // Set initial number of members
-    const currentNumberOfMembers: Field = this.numberOfMembers.get();
-    this.numberOfMembers.assertEquals(currentNumberOfMembers);
-    currentNumberOfMembers.isZero().assertTrue();
-    numberOfMembers.isZero().assertFalse();
-    this.numberOfMembers.set(Field(numberOfMembers));
-
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
     currentMinimalQuorum.isZero().assertTrue();
     minimalQuorum.isZero().assertFalse();
-    minimalQuorum.assertLt(numberOfMembers);
     this.minimalQuorum.set(minimalQuorum);
 
     // Require zkApp signature
     this.requireSignature();
   }
-
+  
   /**
    * @notice Function to set new 'AnonMultiSig' administrator
    * @param newAdmin is public key of new administrator
@@ -117,29 +116,16 @@ export class AnonMultiSigMock extends SmartContract {
     currentAdmin.equals(newAdmin).assertFalse();
 
     // Define msg fields array with new admin
-    let msg: Field[] = [newAdmin];
-
-    // Iterate over timestamp fields and push them to msg fields array
-    const expTimestampFields: Field[] = expirationTimestamp.toFields();
-    for (let i = 0; i < expTimestampFields.length; i++) {
-      msg.push(expTimestampFields[i]);
-    }
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
 
     // Make sure signature is valid
-    const isSignatureValid: Bool = signature.verify(oldAdmin, [msgHash]);
-    isSignatureValid.assertTrue();
+    signature.verify(oldAdmin, [msgHash]).assertTrue();
 
     // Require signature has not expired
-    this.network.timestamp.assertBetween(UInt64.from(0), expirationTimestamp);
+    this.network.timestamp.assertBetween(UInt64.zero, expirationTimestamp);
 
     // Set new admin
     this.admin.set(newAdmin);
@@ -161,26 +147,22 @@ export class AnonMultiSigMock extends SmartContract {
     proposalHash: Field
   ) {
     // Verify admin
-    const contractAdmin: Field = this.admin.get();
-    this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+    this.verifyAdmin(admin);
 
-    // Assert current root
-    const membersTreeRoot: Field = this.membersTreeRoot.get();
-    this.membersTreeRoot.assertEquals(membersTreeRoot);
-
-    // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
-
-    // Assert votes state is empty
-    const proposalVotes: Field = this.proposalVotes.get();
-    this.proposalVotes.assertEquals(proposalVotes);
-    proposalVotes.isZero().assertTrue();
+    // Verify membership
+    this.verifyMembership(memberHash, path);
 
     // Assert proposal hash state is empty
     const currentProposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(currentProposalHash);
     currentProposalHash.isZero().assertTrue();
+
+    // Assert votes state is empty
+    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
+    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
+    votesMerkleMapRoot.isZero().assertTrue();
+    // set votes merkle map root to default/empty map root
+    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
 
     // Assert new proposal hash is not empty field
     proposalHash.isZero().assertFalse();
@@ -192,13 +174,7 @@ export class AnonMultiSigMock extends SmartContract {
     this.proposalId.set(newProposalId);
 
     // Define msg fields array with memberHash, proposalHash and Id
-    let msg: Field[] = [memberHash, proposalHash, newProposalId];
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [memberHash, proposalHash, newProposalId, ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -223,32 +199,21 @@ export class AnonMultiSigMock extends SmartContract {
     memberHash: Field,
     path: MyMerkleWitness,
     signature: Signature,
+    mapPath: MerkleMapWitness,
     vote: Field
   ) {
     // Verify admin
-    const contractAdmin: Field = this.admin.get();
-    this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+    this.verifyAdmin(admin);
 
-    // Assert current root
-    const membersTreeRoot: Field = this.membersTreeRoot.get();
-    this.membersTreeRoot.assertEquals(membersTreeRoot);
-
-    // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
+    // Verify membership
+    this.verifyMembership(memberHash, path);
 
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
     this.proposalId.assertEquals(proposalId);
 
     // Define msg fields array with memberHash, vote and proposalId
-    let msg: Field[] = [memberHash, vote, proposalId];
-
-    // Iterate over address fields and push them to msg fields array
-    const thisAddressFields: Field[] = this.address.toFields();
-    for (let i = 0; i < thisAddressFields.length; i++) {
-      msg.push(thisAddressFields[i]);
-    }
+    let msg: Field[] = [memberHash, vote, proposalId, ...this.address.toFields()];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -256,17 +221,46 @@ export class AnonMultiSigMock extends SmartContract {
     // Verify Signature
     signature.verify(admin, [msgHash]).assertTrue();
 
-    // Assert current votes state
-    const proposalVotes: Field = this.proposalVotes.get();
-    this.proposalVotes.assertEquals(proposalVotes);
+    // Assert votes map root state
+    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
+    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
 
-    // TODO: Check if user already voted
+    // Verify pair using witness
+    // TODO: Consider letting memebers override votes
+    const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(Field(0));
+    votesMerkleMapRoot.assertEquals(witnessRoot, "Invalid witness / Already voted.");
+    memberHash.assertEquals(witnessKey);
 
-    // TODO: Assign vote value to specific bit pair in votes state
+    const [newVotesMerkleMapRoot, ] = mapPath.computeRootAndKey(vote);
+    this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
+    // Make sure vote is valid
+    vote.equals(Field(1)).or(vote.equals(Field(2))).assertTrue();
+
+    // TODO: Merge smaller globals into same state field
     // TODO: Introduce reducers in order to enable multiple vote actions in the same block
+  }
 
-    // Set new proposal hash
-    this.proposalVotes.set(proposalVotes);
+  /**
+   * @notice function to verify admin
+   * @param admin public key to be verified
+   */
+  verifyAdmin(admin: PublicKey) {
+    const contractAdmin: Field = this.admin.get();
+    this.admin.assertEquals(contractAdmin);
+    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+  }
+
+  /**
+   * @notice function to verify membership in a tree
+   * @param memberHash member public key hash
+   * @param path merkle witness for the member
+   */
+  verifyMembership(memberHash: Field, path: MyMerkleWitness) {
+    // Assert current root
+    const membersTreeRoot: Field = this.membersTreeRoot.get();
+    this.membersTreeRoot.assertEquals(membersTreeRoot);
+    // Assert member being part of the tree
+    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
   }
 }
