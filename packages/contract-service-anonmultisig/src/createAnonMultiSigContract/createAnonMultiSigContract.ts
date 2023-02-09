@@ -12,8 +12,6 @@ const createAnonMultiSigContract = async ({
 	zkAppAddress: ReturnType<typeof PublicKey["fromBase58"]>;
 	zkAppInstance: AnonMultiSig;
 }> => {
-	// const { HelloWorld } = await import("smartcontracts");
-
 	await isReady;
 
 	const Berkeley = Mina.Network(
@@ -29,8 +27,6 @@ const createAnonMultiSigContract = async ({
 	}
 
 	const response = await fetchAccount({ publicKey: zkAppAddress });
-
-	console.log({ where: "createAnonMultiSigContract", response });
 
 	if (response.error) {
 		throw Error(response.error.statusText);

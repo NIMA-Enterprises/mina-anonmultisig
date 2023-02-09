@@ -4,14 +4,16 @@ import { wrap } from "comlink";
 import { wagmiClient } from "wallet-connection";
 
 const reset = async () => {
-	const { generateTransactionProof } = wrap<GenerateTransactionProofType>(
-		new Worker(new URL("./worker.ts", import.meta.url), {
-			name: "generateTransactionProof_reset",
-			type: "module",
-		}),
-	);
+	const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+		name: "generateTransactionProof_reset",
+		type: "module",
+	});
+	const { generateTransactionProof } =
+		wrap<GenerateTransactionProofType>(worker);
 
-	const { proof } = await generateTransactionProof(window.PRIVATE_KEY);
+	const { proof, txUrl } = await generateTransactionProof(window.PRIVATE_KEY);
+
+	worker.terminate();
 
 	// console.log("Wallet transaction started");
 	// const provider =
@@ -27,6 +29,8 @@ const reset = async () => {
 	// 	hash,
 	// 	url: `https://berkeley.minaexplorer.com/transaction/${hash}`,
 	// });
+
+	return { txUrl };
 };
 
 declare global {
