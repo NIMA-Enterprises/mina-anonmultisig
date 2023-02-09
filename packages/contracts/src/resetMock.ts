@@ -21,12 +21,14 @@ const zkAppInstance: AnonMultiSigMock = new AnonMultiSigMock(
   zkAppPrivateKey.toPublicKey()
 );
 
+console.log('compiling');
 await AnonMultiSigMock.compile();
 
 // When
+console.log('making tx');
 const txn = await Mina.transaction(
   {
-    feePayerKey: deployerPrivateKey,
+    sender: deployerPrivateKey.toPublicKey(),
     fee: AnonMultiSigLib.TX_FEE,
     memo: 'Reset',
   },
@@ -34,8 +36,11 @@ const txn = await Mina.transaction(
     zkAppInstance.reset();
   }
 );
+console.log('prooving');
 await txn.prove();
-txn.sign([zkAppPrivateKey]);
+console.log('signing')
+txn.sign([deployerPrivateKey, zkAppPrivateKey]);
+console.log('sending');
 await txn.send();
 
 shutdown();
