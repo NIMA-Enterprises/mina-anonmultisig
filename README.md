@@ -21,6 +21,7 @@ _Mina Based ZK Multi Signature Protocol_
 ### How to run tests
 
 `$ yarn workspace contracts test`
+
 `$ yarn workspace contracts testw # watch mode`
 
 ### How to run coverage
