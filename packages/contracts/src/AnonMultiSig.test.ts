@@ -75,7 +75,7 @@ describe('AnonMultiSig', () => {
     setTimeout(shutdown, 0);
   });
 
- describe('General flow tests', () => {
+  describe('General flow tests', () => {
     it('generates and deploys the `AnonMultiSig` smart contract', async () => {
       // Deploy zkApp
       await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
@@ -83,9 +83,7 @@ describe('AnonMultiSig', () => {
 
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
       // Given
-      const admin: Field = Poseidon.hash(
-        deployerAddress.toFields()
-      );
+      const admin: Field = Poseidon.hash(deployerAddress.toFields());
       const numberOfMembers = Field(4);
       const minimalQuorum = Field(3);
 
@@ -118,8 +116,12 @@ describe('AnonMultiSig', () => {
         UInt64.from(120)
       );
       // Compute message
-      let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...zkAppAddress.toFields()];
-      
+      let msg: Field[] = [
+        newAdmin,
+        ...expirationTimestamp.toFields(),
+        ...zkAppAddress.toFields(),
+      ];
+
       // Compute message hash
       const msgHash: Field = Poseidon.hash(msg);
       // Deployer is current admin
@@ -154,7 +156,12 @@ describe('AnonMultiSig', () => {
       const proposalId: Field = zkAppInstance.proposalId.get();
 
       // Define msg fields array with memberHash, proposalHash and Id
-      let msg: Field[] = [memberHash, proposalHash, proposalId.add(1), ...zkAppAddress.toFields()];
+      let msg: Field[] = [
+        memberHash,
+        proposalHash,
+        proposalId.add(1),
+        ...zkAppAddress.toFields(),
+      ];
 
       let msgHash = Poseidon.hash(msg);
 
@@ -207,7 +214,7 @@ describe('AnonMultiSig', () => {
       const msgHash: Field = Poseidon.hash(msg);
       // Sign message with admin pk
       const signature: Signature = Signature.create(account1, [msgHash]);
-
+      const value: Field = Field(0);
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.vote(
@@ -216,6 +223,7 @@ describe('AnonMultiSig', () => {
           path,
           signature,
           mapWitness,
+          value,
           vote
         );
       });
@@ -225,10 +233,13 @@ describe('AnonMultiSig', () => {
 
       map.set(memberHash, vote);
       const newWitness = map.getWitness(memberHash);
-      const [newRoot, ] = newWitness.computeRootAndKey(vote);
+      const [newRoot] = newWitness.computeRootAndKey(vote);
 
       // Then
-      zkAppInstance.votesMerkleMapRoot.get().equals(oldVotesState).assertFalse();
+      zkAppInstance.votesMerkleMapRoot
+        .get()
+        .equals(oldVotesState)
+        .assertFalse();
       expect(zkAppInstance.votesMerkleMapRoot.get()).toEqual(newRoot);
     });
 
@@ -298,7 +309,9 @@ describe('AnonMultiSig', () => {
       }
 
       // Compute a key
-      const key = CircuitString.fromString(accounts[leafToValidate].toBase58()).hash();
+      const key = CircuitString.fromString(
+        accounts[leafToValidate].toBase58()
+      ).hash();
 
       // Get witness for leaf
       const witness: MerkleMapWitness = map.getWitness(key);

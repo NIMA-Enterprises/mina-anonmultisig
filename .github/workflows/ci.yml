@@ -4,7 +4,7 @@
 # Run tests for all pushed commits and opened pull requests on Github.
 #
 
-name: CI
+name: Contracts CI / Test
 on: [push, pull_request]
 jobs:
   test:
@@ -17,10 +17,13 @@ jobs:
           node-version: '16'
       - name: Git checkout
         uses: actions/checkout@v2
-      - name: Yarn install, build, & test
-        run: |
-          yarn install
-          yarn workspace contracts run build
-          yarn workspace contracts run test
+      - name: Install dependencies
+        run: yarn
+      - name: Build contracts
+        run: yarn workspace contracts run build
+      - name: Test contracts
+        run: yarn workspace contracts run test
+      - name: Lint contracts
+        run: yarn workspace contracts lint
         env:
           CI: true

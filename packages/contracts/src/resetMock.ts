@@ -38,7 +38,7 @@ const txn = await Mina.transaction(
 );
 console.log('prooving');
 await txn.prove();
-console.log('signing')
+console.log('signing');
 txn.sign([deployerPrivateKey, zkAppPrivateKey]);
 console.log('sending');
 await txn.send();

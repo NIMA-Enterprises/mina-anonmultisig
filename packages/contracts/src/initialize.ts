@@ -33,7 +33,9 @@ const zkAppInstance: AnonMultiSig = new AnonMultiSig(
 let tree: MerkleTree = new MerkleTree(8);
 
 // Define AnonMultiSig admin
-const adminPk: PublicKey = PublicKey.fromBase58("B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4");
+const adminPk: PublicKey = PublicKey.fromBase58(
+  'B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4'
+);
 
 // Given
 const admin: Field = Poseidon.hash(adminPk.toFields());

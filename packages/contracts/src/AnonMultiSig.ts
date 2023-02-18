@@ -13,10 +13,17 @@ import {
   Poseidon,
   MerkleMap,
   MerkleMapWitness,
-  Circuit
+  Reducer,
+  Struct,
 } from 'snarkyjs';
 
+// TODO: Introduce adaptive tree height
 class MyMerkleWitness extends MerkleWitness(8) {}
+
+class VoteAction extends Struct({
+  proposalId: Field,
+  vote: Field,
+}) {}
 
 export class AnonMultiSig extends SmartContract {
   @state(Field) admin = State<Field>();
@@ -28,11 +35,13 @@ export class AnonMultiSig extends SmartContract {
   @state(Field) votesFor = State<Field>();
   @state(Field) votesAgainst = State<Field>();
 
+  reducer = Reducer({ actionType: VoteAction });
+
   deploy(args: DeployArgs) {
     super.deploy(args);
     this.account.permissions.set({
       ...Permissions.default(),
-      editState: Permissions.proofOrSignature()
+      editState: Permissions.proofOrSignature(),
     });
   }
 
@@ -55,7 +64,7 @@ export class AnonMultiSig extends SmartContract {
       setPermissions: Permissions.impossible(), // Disable permission changes
       setVerificationKey: Permissions.impossible(), // Make contract non-upgradeable
       setZkappUri: Permissions.impossible(),
-      setTokenSymbol: Permissions.impossible()
+      setTokenSymbol: Permissions.impossible(),
     });
 
     // Set root
@@ -106,7 +115,11 @@ export class AnonMultiSig extends SmartContract {
     currentAdmin.equals(newAdmin).assertFalse();
 
     // Define msg fields array with new admin
-    let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...this.address.toFields()];
+    let msg: Field[] = [
+      newAdmin,
+      ...expirationTimestamp.toFields(),
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -164,7 +177,12 @@ export class AnonMultiSig extends SmartContract {
     this.proposalId.set(newProposalId);
 
     // Define msg fields array with memberHash, proposalHash and Id
-    let msg: Field[] = [memberHash, proposalHash, newProposalId, ...this.address.toFields()];
+    let msg: Field[] = [
+      memberHash,
+      proposalHash,
+      newProposalId,
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -190,6 +208,7 @@ export class AnonMultiSig extends SmartContract {
     path: MyMerkleWitness,
     signature: Signature,
     mapPath: MerkleMapWitness,
+    value: Field,
     vote: Field
   ) {
     // Verify admin
@@ -198,12 +217,23 @@ export class AnonMultiSig extends SmartContract {
     // Verify membership
     this.verifyMembership(memberHash, path);
 
+    // Make sure vote is valid
+    vote
+      .equals(Field(1))
+      .or(vote.equals(Field(2)))
+      .assertTrue();
+
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
     this.proposalId.assertEquals(proposalId);
 
     // Define msg fields array with memberHash, vote and proposalId
-    let msg: Field[] = [memberHash, vote, proposalId, ...this.address.toFields()];
+    let msg: Field[] = [
+      memberHash,
+      vote,
+      proposalId,
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -216,31 +246,19 @@ export class AnonMultiSig extends SmartContract {
     this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
 
     // Verify pair using witness
-    // TODO: Consider letting memebers override votes
-    const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(Field(0));
-    votesMerkleMapRoot.assertEquals(witnessRoot, "Invalid witness / Already voted.");
+    const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(value);
+    votesMerkleMapRoot.assertEquals(
+      witnessRoot,
+      'Invalid witness / Already voted.'
+    );
     memberHash.assertEquals(witnessKey);
 
-    const [newVotesMerkleMapRoot, ] = mapPath.computeRootAndKey(vote);
+    // Set new merkle root
+    const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
     this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
-    // Make sure vote is valid
-    vote.equals(Field(1)).or(vote.equals(Field(2))).assertTrue();
-
-    // If vote is for increment votesFor
-    const voteFor = Circuit.if(vote === Field(1), Field(1), Field(0));
-    const votesFor = this.votesFor.get();
-    this.votesFor.assertEquals(votesFor);
-    this.votesFor.set(votesFor.add(voteFor));
-
-    // If vote is against increment votesAgainst
-    const voteAgainst = Circuit.if(vote === Field(2), Field(1), Field(0));
-    const votesAgainst = this.votesAgainst.get();
-    this.votesAgainst.assertEquals(votesAgainst);
-    this.votesAgainst.set(votesAgainst.add(voteAgainst));
-
-    // TODO: Merge smaller globals into same state field
-    // TODO: Introduce reducers in order to enable multiple vote actions in the same block
+    // Dispatch new action
+    this.reducer.dispatch(new VoteAction({ proposalId, vote }));
   }
 
   /**
@@ -265,4 +283,11 @@ export class AnonMultiSig extends SmartContract {
     // Assert member being part of the tree
     path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
   }
+
+  /**
+   *
+   * @param proposalId
+   * @param voteType
+   */
+  // countVotes(proposalId: Field, voteType: Field) {}
 }

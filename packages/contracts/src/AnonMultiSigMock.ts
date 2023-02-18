@@ -13,7 +13,6 @@ import {
   Poseidon,
   MerkleMap,
   MerkleMapWitness,
-  Circuit
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
@@ -30,21 +29,21 @@ export class AnonMultiSigMock extends SmartContract {
     super.deploy(args);
     this.account.permissions.set({
       ...Permissions.default(),
-      editState: Permissions.proofOrSignature()
+      editState: Permissions.proofOrSignature(),
     });
   }
 
   /**
    * @notice Mock method to enable reinitialization
    */
-    @method reset() {
-      const val: Field = Field(0);
-      this.admin.set(val);
-      this.membersTreeRoot.set(val);
-      this.minimalQuorum.set(val);
-      this.proposalId.set(val);
-      this.proposalHash.set(val);
-    }
+  @method reset() {
+    const val: Field = Field(0);
+    this.admin.set(val);
+    this.membersTreeRoot.set(val);
+    this.minimalQuorum.set(val);
+    this.proposalId.set(val);
+    this.proposalHash.set(val);
+  }
 
   /**
    * @notice Function to initialize 'AnonMultiSig' smart contract
@@ -65,7 +64,7 @@ export class AnonMultiSigMock extends SmartContract {
       setPermissions: Permissions.proofOrSignature(), // Disable permission changes
       setVerificationKey: Permissions.proofOrSignature(), // Make contract non-upgradeable
       setZkappUri: Permissions.proofOrSignature(),
-      setTokenSymbol: Permissions.impossible()
+      setTokenSymbol: Permissions.impossible(),
     });
 
     // Set root
@@ -92,7 +91,7 @@ export class AnonMultiSigMock extends SmartContract {
     // Require zkApp signature
     this.requireSignature();
   }
-  
+
   /**
    * @notice Function to set new 'AnonMultiSig' administrator
    * @param newAdmin is public key of new administrator
@@ -116,7 +115,11 @@ export class AnonMultiSigMock extends SmartContract {
     currentAdmin.equals(newAdmin).assertFalse();
 
     // Define msg fields array with new admin
-    let msg: Field[] = [newAdmin, ...expirationTimestamp.toFields(), ...this.address.toFields()];
+    let msg: Field[] = [
+      newAdmin,
+      ...expirationTimestamp.toFields(),
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -174,7 +177,12 @@ export class AnonMultiSigMock extends SmartContract {
     this.proposalId.set(newProposalId);
 
     // Define msg fields array with memberHash, proposalHash and Id
-    let msg: Field[] = [memberHash, proposalHash, newProposalId, ...this.address.toFields()];
+    let msg: Field[] = [
+      memberHash,
+      proposalHash,
+      newProposalId,
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -213,7 +221,12 @@ export class AnonMultiSigMock extends SmartContract {
     this.proposalId.assertEquals(proposalId);
 
     // Define msg fields array with memberHash, vote and proposalId
-    let msg: Field[] = [memberHash, vote, proposalId, ...this.address.toFields()];
+    let msg: Field[] = [
+      memberHash,
+      vote,
+      proposalId,
+      ...this.address.toFields(),
+    ];
 
     // Reconstruct signed message
     const msgHash: Field = Poseidon.hash(msg);
@@ -228,14 +241,20 @@ export class AnonMultiSigMock extends SmartContract {
     // Verify pair using witness
     // TODO: Consider letting memebers override votes
     const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(Field(0));
-    votesMerkleMapRoot.assertEquals(witnessRoot, "Invalid witness / Already voted.");
+    votesMerkleMapRoot.assertEquals(
+      witnessRoot,
+      'Invalid witness / Already voted.'
+    );
     memberHash.assertEquals(witnessKey);
 
-    const [newVotesMerkleMapRoot, ] = mapPath.computeRootAndKey(vote);
+    const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
     this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
     // Make sure vote is valid
-    vote.equals(Field(1)).or(vote.equals(Field(2))).assertTrue();
+    vote
+      .equals(Field(1))
+      .or(vote.equals(Field(2)))
+      .assertTrue();
 
     // TODO: Merge smaller globals into same state field
     // TODO: Introduce reducers in order to enable multiple vote actions in the same block
