@@ -16,6 +16,7 @@ import {
   Reducer,
   Struct,
   Circuit,
+  CircuitString,
 } from 'snarkyjs';
 
 // TODO: Introduce adaptive tree height
@@ -23,6 +24,7 @@ class MyMerkleWitness extends MerkleWitness(8) {}
 
 class VoteAction extends Struct({
   proposalId: Field,
+  merkleMapRoot: Field,
   vote: Field,
 }) {}
 
@@ -32,7 +34,6 @@ export class AnonMultiSig extends SmartContract {
   @state(Field) minimalQuorum = State<Field>();
   @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
   @state(Field) proposalHash = State<Field>();
-  @state(Field) votesMerkleMapRoot = State<Field>();
   @state(Field) voteActionsHash = State<Field>();
 
   reducer = Reducer({ actionType: VoteAction });
@@ -43,7 +44,6 @@ export class AnonMultiSig extends SmartContract {
       ...Permissions.default(),
       editState: Permissions.proofOrSignature(),
     });
-    this.voteActionsHash.set(Reducer.initialActionsHash);
   }
 
   /**
@@ -67,6 +67,9 @@ export class AnonMultiSig extends SmartContract {
       setZkappUri: Permissions.impossible(),
       setTokenSymbol: Permissions.impossible(),
     });
+
+    // Set initial voteActionsHash
+    this.voteActionsHash.set(Reducer.initialActionsHash);
 
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
@@ -161,13 +164,6 @@ export class AnonMultiSig extends SmartContract {
     this.proposalHash.assertEquals(currentProposalHash);
     currentProposalHash.isZero().assertTrue();
 
-    // Assert votes state is empty
-    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
-    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
-    votesMerkleMapRoot.isZero().assertTrue();
-    // set votes merkle map root to default/empty map root
-    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
-
     // Assert new proposal hash is not empty field
     proposalHash.isZero().assertFalse();
 
@@ -176,6 +172,15 @@ export class AnonMultiSig extends SmartContract {
     this.proposalId.assertEquals(proposalId);
     const newProposalId: Field = proposalId.add(1);
     this.proposalId.set(newProposalId);
+
+    // Dispatch initial root
+    this.reducer.dispatch(
+      new VoteAction({
+        proposalId: newProposalId,
+        merkleMapRoot: new MerkleMap().getRoot(),
+        vote: Field(0),
+      })
+    );
 
     // Define msg fields array with memberHash, proposalHash and Id
     let msg: Field[] = [
@@ -245,38 +250,69 @@ export class AnonMultiSig extends SmartContract {
     // Verify Signature
     signature.verify(admin, [msgHash]).assertTrue();
 
-    // Assert votes map root state
-    const votesMerkleMapRoot: Field = this.votesMerkleMapRoot.get();
-    this.votesMerkleMapRoot.assertEquals(votesMerkleMapRoot);
+    // 
+    const votesMerkleMapRoot = this.getVotesMerkleMapRoot();
 
     // Verify pair using witness
     const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(value);
-    votesMerkleMapRoot.assertEquals(
-      witnessRoot,
-      'Invalid witness / Already voted.'
-    );
+    votesMerkleMapRoot.assertEquals(witnessRoot, 'Invalid witness.');
     memberHash.assertEquals(witnessKey);
 
-    // Set new merkle root
+    // Get new merkle root
     const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
-    this.votesMerkleMapRoot.set(newVotesMerkleMapRoot);
 
     // Dispatch new action
-    this.reducer.dispatch(new VoteAction({ proposalId, vote }));
+    this.reducer.dispatch(
+      new VoteAction({ proposalId, merkleMapRoot: newVotesMerkleMapRoot, vote })
+    );
   }
 
-  @method cancel() {
+  /**
+   * @notice Function to cancel active proposal
+   * @param admin is public key of contract administrator
+   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param path is proof of user belonging in the members tree
+   * @param signature is administrator's confirmation signature
+   */
+  @method cancel(
+    admin: PublicKey,
+    memberHash: Field,
+    path: MyMerkleWitness,
+    signature: Signature
+  ) {
     this.assertMinimalQuorum(Field(2));
 
+    // Verify admin
+    this.verifyAdmin(admin);
+
+    // Verify membership
+    this.verifyMembership(memberHash, path);
+
+    // Assert current proposal id
+    const proposalId: Field = this.proposalId.get();
+    this.proposalId.assertEquals(proposalId);
+
+    // Define msg fields array with memberHash, vote and proposalId
+    let msg: Field[] = [
+      memberHash,
+      proposalId,
+      ...CircuitString.fromString('cancel').toFields(),
+      ...this.address.toFields(),
+    ];
+
+    // Reconstruct signed message
+    const msgHash: Field = Poseidon.hash(msg);
+
+    // Verify Signature
+    signature.verify(admin, [msgHash]).assertTrue();
+
     this.proposalHash.set(Field(0));
-    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
   }
 
   @method execute() {
     this.assertMinimalQuorum(Field(1));
 
     this.proposalHash.set(Field(0));
-    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
   }
 
   /**
@@ -310,9 +346,9 @@ export class AnonMultiSig extends SmartContract {
     const minimalQuorum = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(minimalQuorum);
 
-    const votesAgainst = this.countVotes(voteType);
+    const votes = this.countVotes(voteType);
 
-    votesAgainst.assertGte(minimalQuorum);
+    votes.assertGte(minimalQuorum);
   }
 
   /**
@@ -339,5 +375,26 @@ export class AnonMultiSig extends SmartContract {
       );
     this.voteActionsHash.set(newVoteActionsHash);
     return voteCounter;
+  }
+
+  /**
+   * 
+   * @returns 
+   */
+  getVotesMerkleMapRoot(): Field{
+
+    let voteActionsHash = this.voteActionsHash.get();
+    this.voteActionsHash.assertEquals(voteActionsHash);
+
+    const { state: votesMerkleMapRoot } = this.reducer.reduce(
+      this.reducer.getActions({ fromActionHash: voteActionsHash }),
+      Field,
+      (state: Field, action: VoteAction) => {
+        return action.merkleMapRoot;
+      },
+      { state: new MerkleMap().getRoot(), actionsHash: voteActionsHash }
+    );
+
+    return votesMerkleMapRoot;
   }
 }

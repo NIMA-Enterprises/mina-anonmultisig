@@ -196,9 +196,6 @@ describe('AnonMultiSig', () => {
       const vote: Field = Field(1);
       const proposalId: Field = zkAppInstance.proposalId.get();
 
-      // TODO: Adapt to vote state changes before final checks
-      let oldVotesState = zkAppInstance.votesMerkleMapRoot.get();
-
       // Define msg fields array with memberHash, vote and proposalId
       let msg: Field[] = [memberHash, vote, proposalId];
 
@@ -209,6 +206,9 @@ describe('AnonMultiSig', () => {
       }
 
       const mapWitness = map.getWitness(memberHash);
+
+      const votesInitialRoot = zkAppInstance.getVotesMerkleMapRoot();
+      expect(votesInitialRoot).toEqual(new MerkleMap().getRoot());
 
       // Reconstruct signed message
       const msgHash: Field = Poseidon.hash(msg);
@@ -234,16 +234,16 @@ describe('AnonMultiSig', () => {
       map.set(memberHash, vote);
       const newWitness = map.getWitness(memberHash);
       const [newRoot] = newWitness.computeRootAndKey(vote);
-
+      
       // Then
-      zkAppInstance.votesMerkleMapRoot
-        .get()
-        .equals(oldVotesState)
-        .assertFalse();
-      expect(zkAppInstance.votesMerkleMapRoot.get()).toEqual(newRoot);
+      const newVotesRoot = zkAppInstance.getVotesMerkleMapRoot();
+      expect(newVotesRoot).toEqual(newRoot);
 
-      const voteCounter = zkAppInstance.countVotes(Field(1));
-      expect(voteCounter).toEqual(Field(1));
+      const forVoteCounter = zkAppInstance.countVotes(Field(1));
+      expect(forVoteCounter).toEqual(Field(1));
+
+      const againstVoteCounter = zkAppInstance.countVotes(Field(2));
+      expect(againstVoteCounter).toEqual(Field(0));
     });
 
     // TODO: Test for voting twice by same member
