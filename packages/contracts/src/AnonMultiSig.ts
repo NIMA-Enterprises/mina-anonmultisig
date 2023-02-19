@@ -15,6 +15,7 @@ import {
   MerkleMapWitness,
   Reducer,
   Struct,
+  Circuit,
 } from 'snarkyjs';
 
 // TODO: Introduce adaptive tree height
@@ -32,8 +33,7 @@ export class AnonMultiSig extends SmartContract {
   @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
   @state(Field) proposalHash = State<Field>();
   @state(Field) votesMerkleMapRoot = State<Field>();
-  @state(Field) votesFor = State<Field>();
-  @state(Field) votesAgainst = State<Field>();
+  @state(Field) voteActionsHash = State<Field>();
 
   reducer = Reducer({ actionType: VoteAction });
 
@@ -43,6 +43,7 @@ export class AnonMultiSig extends SmartContract {
       ...Permissions.default(),
       editState: Permissions.proofOrSignature(),
     });
+    this.voteActionsHash.set(Reducer.initialActionsHash);
   }
 
   /**
@@ -223,6 +224,9 @@ export class AnonMultiSig extends SmartContract {
       .or(vote.equals(Field(2)))
       .assertTrue();
 
+    // Make sure vote is different than current witness value
+    vote.equals(value).assertFalse();
+
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
     this.proposalId.assertEquals(proposalId);
@@ -261,6 +265,20 @@ export class AnonMultiSig extends SmartContract {
     this.reducer.dispatch(new VoteAction({ proposalId, vote }));
   }
 
+  @method cancel() {
+    this.assertMinimalQuorum(Field(2));
+
+    this.proposalHash.set(Field(0));
+    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
+  }
+
+  @method execute() {
+    this.assertMinimalQuorum(Field(1));
+
+    this.proposalHash.set(Field(0));
+    this.votesMerkleMapRoot.set(new MerkleMap().getRoot());
+  }
+
   /**
    * @notice function to verify admin
    * @param admin public key to be verified
@@ -286,8 +304,40 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    *
-   * @param proposalId
    * @param voteType
    */
-  // countVotes(proposalId: Field, voteType: Field) {}
+  assertMinimalQuorum(voteType: Field) {
+    const minimalQuorum = this.minimalQuorum.get();
+    this.minimalQuorum.assertEquals(minimalQuorum);
+
+    const votesAgainst = this.countVotes(voteType);
+
+    votesAgainst.assertGte(minimalQuorum);
+  }
+
+  /**
+   * @notice function to count over the votes of an active proposal
+   * @param voteType
+   */
+  countVotes(voteType: Field): Field {
+    let voteActionsHash = this.voteActionsHash.get();
+    this.voteActionsHash.assertEquals(voteActionsHash);
+
+    let { state: voteCounter, actionsHash: newVoteActionsHash } =
+      this.reducer.reduce(
+        this.reducer.getActions({ fromActionHash: voteActionsHash }),
+        Field,
+        (state: Field, action: VoteAction) => {
+          const increment = Circuit.if(
+            action.vote.equals(voteType),
+            Field(1),
+            Field(0)
+          );
+          return state.add(increment);
+        },
+        { state: Field(0), actionsHash: voteActionsHash }
+      );
+    this.voteActionsHash.set(newVoteActionsHash);
+    return voteCounter;
+  }
 }

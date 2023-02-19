@@ -241,6 +241,9 @@ describe('AnonMultiSig', () => {
         .equals(oldVotesState)
         .assertFalse();
       expect(zkAppInstance.votesMerkleMapRoot.get()).toEqual(newRoot);
+
+      const voteCounter = zkAppInstance.countVotes(Field(1));
+      expect(voteCounter).toEqual(Field(1));
     });
 
     // TODO: Test for voting twice by same member
