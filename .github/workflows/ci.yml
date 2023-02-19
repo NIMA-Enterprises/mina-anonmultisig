@@ -1,11 +1,12 @@
-#
-# ci.yml
-#
-# Run tests for all pushed commits and opened pull requests on Github.
-#
-
 name: Contracts CI / Test
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request: 
+    branches: 
+      - '**'
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -21,9 +22,9 @@ jobs:
         run: yarn
       - name: Build contracts
         run: yarn workspace contracts run build
-      - name: Test contracts
-        run: yarn workspace contracts run test
       - name: Lint contracts
         run: yarn workspace contracts lint
+      - name: Test contracts
+        run: yarn workspace contracts run test
         env:
           CI: true
