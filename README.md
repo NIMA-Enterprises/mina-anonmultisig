@@ -12,6 +12,10 @@ _Mina Based ZK Multi Signature Protocol_
 
 ![Contracts CI / Test](https://github.com/nima-enterprises/mina-anonmultisig/actions/workflows/ci.yml/badge.svg)
 
+## ZkApp Setup
+
+...to be added
+
 ## Smart Contracts
 
 ### How to build
@@ -27,6 +31,10 @@ _Mina Based ZK Multi Signature Protocol_
 ### How to run coverage
 
 `$ yarn workspace contracts coverage`
+
+### How to lint
+
+`$ yarn workspace contracts lint`
 
 ## License
 
