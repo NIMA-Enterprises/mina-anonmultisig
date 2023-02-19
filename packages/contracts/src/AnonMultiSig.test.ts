@@ -234,15 +234,15 @@ describe('AnonMultiSig', () => {
       map.set(memberHash, vote);
       const newWitness = map.getWitness(memberHash);
       const [newRoot] = newWitness.computeRootAndKey(vote);
-      
+
       // Then
       const newVotesRoot = zkAppInstance.getVotesMerkleMapRoot();
       expect(newVotesRoot).toEqual(newRoot);
 
-      const forVoteCounter = zkAppInstance.countVotes(Field(1));
+      const forVoteCounter = zkAppInstance.countVotes(Field(1))[0];
       expect(forVoteCounter).toEqual(Field(1));
 
-      const againstVoteCounter = zkAppInstance.countVotes(Field(2));
+      const againstVoteCounter = zkAppInstance.countVotes(Field(2))[0];
       expect(againstVoteCounter).toEqual(Field(0));
     });
 

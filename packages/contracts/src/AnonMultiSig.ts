@@ -64,7 +64,7 @@ export class AnonMultiSig extends SmartContract {
       setDelegate: Permissions.proof(), // TODO: Introduce stake delegation for AnonMultiSig
       setPermissions: Permissions.impossible(), // Disable permission changes
       setVerificationKey: Permissions.impossible(), // Make contract non-upgradeable
-      setZkappUri: Permissions.impossible(),
+      setZkappUri: Permissions.impossible(), // Make contract non-upgradeable
       setTokenSymbol: Permissions.impossible(),
     });
 
@@ -250,7 +250,7 @@ export class AnonMultiSig extends SmartContract {
     // Verify Signature
     signature.verify(admin, [msgHash]).assertTrue();
 
-    // 
+    // Get current votes merkle map root
     const votesMerkleMapRoot = this.getVotesMerkleMapRoot();
 
     // Verify pair using witness
@@ -269,6 +269,7 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    * @notice Function to cancel active proposal
+   * @dev Cancel is possible only when >= minimalQuorum of members has voted against the proposal
    * @param admin is public key of contract administrator
    * @param memberHash is hash of user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
@@ -280,7 +281,8 @@ export class AnonMultiSig extends SmartContract {
     path: MyMerkleWitness,
     signature: Signature
   ) {
-    this.assertMinimalQuorum(Field(2));
+    // Assert minimal quorum has voted in favor of canceling the proposal
+    this.assertVotesAndSetActionsHash(Field(2));
 
     // Verify admin
     this.verifyAdmin(admin);
@@ -306,17 +308,20 @@ export class AnonMultiSig extends SmartContract {
     // Verify Signature
     signature.verify(admin, [msgHash]).assertTrue();
 
+    // Empty the proposal hash state
     this.proposalHash.set(Field(0));
   }
 
   @method execute() {
-    this.assertMinimalQuorum(Field(1));
+    // Assert minimal quorum has voted in favor of proposal execution
+    this.assertVotesAndSetActionsHash(Field(1));
 
+    // Empty the proposal hash state
     this.proposalHash.set(Field(0));
   }
 
   /**
-   * @notice function to verify admin
+   * @notice Function to verify admin
    * @param admin public key to be verified
    */
   verifyAdmin(admin: PublicKey) {
@@ -326,7 +331,7 @@ export class AnonMultiSig extends SmartContract {
   }
 
   /**
-   * @notice function to verify membership in a tree
+   * @notice Function to verify membership in a tree
    * @param memberHash member public key hash
    * @param path merkle witness for the member
    */
@@ -339,23 +344,30 @@ export class AnonMultiSig extends SmartContract {
   }
 
   /**
-   *
-   * @param voteType
+   * @notice Function to assert votes and set new voteActionsHash
+   * @dev Called by cancel and execute functions
+   * @param voteType value of vote that is in favor of action we want to make
    */
-  assertMinimalQuorum(voteType: Field) {
+  assertVotesAndSetActionsHash(voteType: Field) {
+    // Assert minimalQuorum
     const minimalQuorum = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(minimalQuorum);
 
-    const votes = this.countVotes(voteType);
+    // Get vote count and latest actions hash
+    const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
+    // Assert >= minimal quorum has voted in favor of your action
     votes.assertGte(minimalQuorum);
+
+    // Set new vote actions hash
+    this.voteActionsHash.set(newVoteActionsHash);
   }
 
   /**
-   * @notice function to count over the votes of an active proposal
-   * @param voteType
+   * @notice Function to count over the votes of an active proposal
+   * @param voteType value of vote that is in favor of action we want to make
    */
-  countVotes(voteType: Field): Field {
+  countVotes(voteType: Field): Field[] {
     let voteActionsHash = this.voteActionsHash.get();
     this.voteActionsHash.assertEquals(voteActionsHash);
 
@@ -373,16 +385,14 @@ export class AnonMultiSig extends SmartContract {
         },
         { state: Field(0), actionsHash: voteActionsHash }
       );
-    this.voteActionsHash.set(newVoteActionsHash);
-    return voteCounter;
+    return [voteCounter, newVoteActionsHash];
   }
 
   /**
-   * 
-   * @returns 
+   * @notice Function to get the valid/latest merkle map root of active proposal votes
+   * @returns current merkle map root of active proposal votes
    */
-  getVotesMerkleMapRoot(): Field{
-
+  getVotesMerkleMapRoot(): Field {
     let voteActionsHash = this.voteActionsHash.get();
     this.voteActionsHash.assertEquals(voteActionsHash);
 
