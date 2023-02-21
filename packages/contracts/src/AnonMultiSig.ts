@@ -48,7 +48,7 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    * @notice Function to initialize 'AnonMultiSig' smart contract
-   * @param admin is public key of initial administrator
+   * @param admin is hash of initial administrator public key
    * @param membersTreeRoot is root of a merkle tree containing all members
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
    */
@@ -75,21 +75,21 @@ export class AnonMultiSig extends SmartContract {
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
     currentMembersTreeRoot.isZero().assertTrue();
-    membersTreeRoot.isZero().assertFalse();
+    membersTreeRoot.isZero().assertFalse('Members tree root cannot be empty.');
     this.membersTreeRoot.set(membersTreeRoot);
 
     // Set admin
     const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
     currentAdmin.isZero().assertTrue();
-    admin.isZero().assertFalse();
+    admin.isZero().assertFalse('Admin cannot be empty.');
     this.admin.set(admin);
 
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
     currentMinimalQuorum.isZero().assertTrue();
-    minimalQuorum.isZero().assertFalse();
+    minimalQuorum.isZero().assertFalse('Minimal quorum cannot be empty.');
     this.minimalQuorum.set(minimalQuorum);
 
     // Require zkApp signature
@@ -111,12 +111,12 @@ export class AnonMultiSig extends SmartContract {
     // Get and assert current admin
     const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
-    currentAdmin.assertEquals(Poseidon.hash(oldAdmin.toFields()));
+    currentAdmin.assertEquals(Poseidon.hash(oldAdmin.toFields()), 'Invalid old admin public key.');
 
     // Require that new admin is not empty
-    newAdmin.isZero().assertFalse();
+    newAdmin.isZero().assertFalse('Invalid new admin public key.');
     // Require new admin is different than the current one
-    currentAdmin.equals(newAdmin).assertFalse();
+    currentAdmin.equals(newAdmin).assertFalse('Admin public keys must be different.');
 
     // Define msg fields array with new admin
     let msg: Field[] = [
@@ -129,7 +129,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Make sure signature is valid
-    signature.verify(oldAdmin, [msgHash]).assertTrue();
+    signature.verify(oldAdmin, [msgHash]).assertTrue('Invalid signature.');
 
     // Require signature has not expired
     this.network.timestamp.assertBetween(UInt64.zero, expirationTimestamp);
@@ -227,10 +227,10 @@ export class AnonMultiSig extends SmartContract {
     vote
       .equals(Field(1))
       .or(vote.equals(Field(2)))
-      .assertTrue();
+      .assertTrue('Invalid vote value.');
 
     // Make sure vote is different than current witness value
-    vote.equals(value).assertFalse();
+    vote.equals(value).assertFalse('Invalid merkle witness value.');
 
     // Assert current proposal id
     const proposalId: Field = this.proposalId.get();
@@ -255,8 +255,8 @@ export class AnonMultiSig extends SmartContract {
 
     // Verify pair using witness
     const [witnessRoot, witnessKey] = mapPath.computeRootAndKey(value);
-    votesMerkleMapRoot.assertEquals(witnessRoot, 'Invalid witness.');
-    memberHash.assertEquals(witnessKey);
+    votesMerkleMapRoot.assertEquals(witnessRoot, 'Invalid root.');
+    memberHash.assertEquals(witnessKey, 'Invalid witness key.');
 
     // Get new merkle root
     const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
@@ -306,7 +306,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msgHash]).assertTrue();
+    signature.verify(admin, [msgHash]).assertTrue('Invalid signature.');
 
     // Empty the proposal hash state
     this.proposalHash.set(Field(0));
@@ -327,7 +327,7 @@ export class AnonMultiSig extends SmartContract {
   verifyAdmin(admin: PublicKey) {
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()));
+    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()), 'Invalid admin public key.');
   }
 
   /**
@@ -340,7 +340,7 @@ export class AnonMultiSig extends SmartContract {
     const membersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(membersTreeRoot);
     // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot);
+    path.calculateRoot(memberHash).assertEquals(membersTreeRoot, 'Invalid witness.');
   }
 
   /**
@@ -357,7 +357,7 @@ export class AnonMultiSig extends SmartContract {
     const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
     // Assert >= minimal quorum has voted in favor of your action
-    votes.assertGte(minimalQuorum);
+    votes.assertGte(minimalQuorum, "Minimal quorum not reached.");
 
     // Set new vote actions hash
     this.voteActionsHash.set(newVoteActionsHash);
