@@ -111,12 +111,17 @@ export class AnonMultiSig extends SmartContract {
     // Get and assert current admin
     const currentAdmin: Field = this.admin.get();
     this.admin.assertEquals(currentAdmin);
-    currentAdmin.assertEquals(Poseidon.hash(oldAdmin.toFields()), 'Invalid old admin public key.');
+    currentAdmin.assertEquals(
+      Poseidon.hash(oldAdmin.toFields()),
+      'Invalid old admin public key.'
+    );
 
     // Require that new admin is not empty
     newAdmin.isZero().assertFalse('Invalid new admin public key.');
     // Require new admin is different than the current one
-    currentAdmin.equals(newAdmin).assertFalse('Admin public keys must be different.');
+    currentAdmin
+      .equals(newAdmin)
+      .assertFalse('Admin public keys must be different.');
 
     // Define msg fields array with new admin
     let msg: Field[] = [
@@ -327,7 +332,10 @@ export class AnonMultiSig extends SmartContract {
   verifyAdmin(admin: PublicKey) {
     const contractAdmin: Field = this.admin.get();
     this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(Poseidon.hash(admin.toFields()), 'Invalid admin public key.');
+    contractAdmin.assertEquals(
+      Poseidon.hash(admin.toFields()),
+      'Invalid admin public key.'
+    );
   }
 
   /**
@@ -340,7 +348,9 @@ export class AnonMultiSig extends SmartContract {
     const membersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(membersTreeRoot);
     // Assert member being part of the tree
-    path.calculateRoot(memberHash).assertEquals(membersTreeRoot, 'Invalid witness.');
+    path
+      .calculateRoot(memberHash)
+      .assertEquals(membersTreeRoot, 'Invalid witness.');
   }
 
   /**
@@ -357,7 +367,7 @@ export class AnonMultiSig extends SmartContract {
     const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
     // Assert >= minimal quorum has voted in favor of your action
-    votes.assertGte(minimalQuorum, "Minimal quorum not reached.");
+    votes.assertGte(minimalQuorum, 'Minimal quorum not reached.');
 
     // Set new vote actions hash
     this.voteActionsHash.set(newVoteActionsHash);
