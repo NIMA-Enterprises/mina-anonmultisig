@@ -317,9 +317,64 @@ export class AnonMultiSig extends SmartContract {
     this.proposalHash.set(Field(0));
   }
 
-  @method execute() {
+  /**
+   * @notice Function to execute active proposal
+   * @dev Execution is possible only when >= minimalQuorum of members has voted for the proposal
+   * @param admin is public key of contract administrator
+   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param path is proof of user belonging in the members tree
+   * @param signature is administrator's confirmation signature
+   * @param to account receiving proposed funds
+   * @param amount proposed funds
+   */
+  @method execute(
+    admin: PublicKey,
+    memberHash: Field,
+    path: MyMerkleWitness,
+    signature: Signature,
+    to: PublicKey,
+    amount: UInt64
+  ) {
     // Assert minimal quorum has voted in favor of proposal execution
     this.assertVotesAndSetActionsHash(Field(1));
+
+    // Verify admin
+    this.verifyAdmin(admin);
+
+    // Verify membership
+    this.verifyMembership(memberHash, path);
+
+    // Assert current proposal id
+    const proposalId: Field = this.proposalId.get();
+    this.proposalId.assertEquals(proposalId);
+
+    // Define msg fields array with memberHash, vote and proposalId
+    let msg: Field[] = [
+      memberHash,
+      proposalId,
+      ...CircuitString.fromString('execute').toFields(),
+      ...this.address.toFields(),
+    ];
+
+    // Reconstruct signed message
+    const msgHash: Field = Poseidon.hash(msg);
+
+    // Verify Signature
+    signature.verify(admin, [msgHash]).assertTrue('Invalid signature.');
+
+    // Assert proposalHash
+    const proposalHash: Field = this.proposalHash.get();
+    this.proposalHash.assertEquals(proposalHash);
+
+    // Assert provided proposal data
+    const computedProposalHash = Poseidon.hash([
+      ...to.toFields(),
+      ...amount.toFields(),
+    ]);
+    this.proposalHash.assertEquals(computedProposalHash);
+
+    // Make proposed transaction
+    this.send({ to, amount });
 
     // Empty the proposal hash state
     this.proposalHash.set(Field(0));

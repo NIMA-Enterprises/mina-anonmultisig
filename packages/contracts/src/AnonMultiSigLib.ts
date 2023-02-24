@@ -1,3 +1,4 @@
+import { AnonMultiSig } from './AnonMultiSig';
 import {
   MerkleTree,
   Mina,
@@ -6,7 +7,6 @@ import {
   PublicKey,
   Poseidon,
 } from 'snarkyjs';
-import { AnonMultiSig } from './AnonMultiSig';
 
 export const TX_FEE = 100_000_000;
 
