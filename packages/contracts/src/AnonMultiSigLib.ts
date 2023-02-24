@@ -8,7 +8,7 @@ import {
   Poseidon,
 } from 'snarkyjs';
 
-export const TX_FEE = 100_000_000;
+export const TX_FEE = 200_000_000;
 
 export function generateTree(
   tree: MerkleTree,

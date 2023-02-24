@@ -62,5 +62,6 @@ const txn = await Mina.transaction(
 await txn.prove();
 txn.sign([deployerPrivateKey, zkAppPrivateKey]);
 await txn.send();
+console.log('Done!');
 
 shutdown();
