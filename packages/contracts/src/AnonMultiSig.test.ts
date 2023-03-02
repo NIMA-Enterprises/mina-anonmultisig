@@ -112,9 +112,9 @@ describe('AnonMultiSig', () => {
       // Given
       const newAdmin: Field = Poseidon.hash(account1.toPublicKey().toFields());
       // Expiration timestamp which is valid for 2 minutes after created
-      const expirationTimestamp: UInt64 = UInt64.from(zkAppInstance.network.timestamp.get()).add(
-        UInt64.from(120)
-      );
+      const expirationTimestamp: UInt64 = UInt64.from(
+        zkAppInstance.network.timestamp.get()
+      ).add(UInt64.from(120));
       // Compute message
       let msg: Field[] = [
         newAdmin,
