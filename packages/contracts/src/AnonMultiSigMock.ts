@@ -72,8 +72,8 @@ export class AnonMultiSigMock extends SmartContract {
     // Set proper permissions for non-upgradeable decentralized voting
     this.account.permissions.set({
       ...Permissions.default(),
-      send: Permissions.proof(),
-      setDelegate: Permissions.proof(), // TODO: Introduce stake delegation for AnonMultiSig
+      send: Permissions.proofOrSignature(),
+      setDelegate: Permissions.proofOrSignature(), // TODO: Introduce stake delegation for AnonMultiSig
       setPermissions: Permissions.proofOrSignature(), // Disable permission changes
       setVerificationKey: Permissions.proofOrSignature(), // Make contract non-upgradeable
       setZkappUri: Permissions.proofOrSignature(),
@@ -434,7 +434,7 @@ export class AnonMultiSigMock extends SmartContract {
     const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
     // Assert >= minimal quorum has voted in favor of your action
-    votes.assertGte(minimalQuorum, 'Minimal quorum not reached.');
+    votes.assertGreaterThanOrEqual(minimalQuorum, 'Minimal quorum not reached.');
 
     // Set new vote actions hash
     this.voteActionsHash.set(newVoteActionsHash);
@@ -453,12 +453,11 @@ export class AnonMultiSigMock extends SmartContract {
         this.reducer.getActions({ fromActionHash: voteActionsHash }),
         Field,
         (state: Field, action: VoteAction) => {
-          const increment = Circuit.if(
+          return Circuit.if(
             action.vote.equals(voteType),
-            Field(1),
-            Field(0)
+            state.add(Field(1)),
+            state
           );
-          return state.add(increment);
         },
         { state: Field(0), actionsHash: voteActionsHash }
       );
