@@ -2,6 +2,7 @@ import {
   Field,
   SmartContract,
   UInt64,
+  Bool,
   state,
   State,
   method,
@@ -26,6 +27,7 @@ class VoteAction extends Struct({
   proposalId: Field,
   merkleMapRoot: Field,
   vote: Field,
+  override: Bool,
 }) {}
 
 export class AnonMultiSig extends SmartContract {
@@ -184,6 +186,7 @@ export class AnonMultiSig extends SmartContract {
         proposalId: newProposalId,
         merkleMapRoot: new MerkleMap().getRoot(),
         vote: Field(0),
+        override: Bool(false),
       })
     );
 
@@ -222,6 +225,9 @@ export class AnonMultiSig extends SmartContract {
     value: Field,
     vote: Field
   ) {
+    // Assert active proposal existance
+    this.assertActiveProposal();
+
     // Verify admin
     this.verifyAdmin(admin);
 
@@ -266,9 +272,21 @@ export class AnonMultiSig extends SmartContract {
     // Get new merkle root
     const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
 
+    // If previous value was not zero consider the vote overriden
+    const override: Bool = Circuit.if(
+      value.equals(Field(1)).or(value.equals(Field(2))),
+      Bool(true),
+      Bool(false)
+    );
+
     // Dispatch new action
     this.reducer.dispatch(
-      new VoteAction({ proposalId, merkleMapRoot: newVotesMerkleMapRoot, vote })
+      new VoteAction({
+        proposalId,
+        merkleMapRoot: newVotesMerkleMapRoot,
+        vote,
+        override,
+      })
     );
   }
 
@@ -286,6 +304,9 @@ export class AnonMultiSig extends SmartContract {
     path: MyMerkleWitness,
     signature: Signature
   ) {
+    // Assert active proposal existance
+    this.assertActiveProposal();
+
     // Assert minimal quorum has voted in favor of canceling the proposal
     this.assertVotesAndSetActionsHash(Field(2));
 
@@ -365,6 +386,7 @@ export class AnonMultiSig extends SmartContract {
     // Assert proposalHash
     const proposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(proposalHash);
+    proposalHash.isZero().assertFalse();
 
     // Assert provided proposal data
     const computedProposalHash = Poseidon.hash([
@@ -422,7 +444,10 @@ export class AnonMultiSig extends SmartContract {
     const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
     // Assert >= minimal quorum has voted in favor of your action
-    votes.assertGreaterThanOrEqual(minimalQuorum, 'Minimal quorum not reached.');
+    votes.assertGreaterThanOrEqual(
+      minimalQuorum,
+      'Minimal quorum not reached.'
+    );
 
     // Set new vote actions hash
     this.voteActionsHash.set(newVoteActionsHash);
@@ -436,6 +461,8 @@ export class AnonMultiSig extends SmartContract {
     let voteActionsHash = this.voteActionsHash.get();
     this.voteActionsHash.assertEquals(voteActionsHash);
 
+    const reverseVote = Circuit.if(voteType.equals(Field(1)), Field(2), Field(1));
+
     let { state: voteCounter, actionsHash: newVoteActionsHash } =
       this.reducer.reduce(
         this.reducer.getActions({ fromActionHash: voteActionsHash }),
@@ -444,7 +471,11 @@ export class AnonMultiSig extends SmartContract {
           return Circuit.if(
             action.vote.equals(voteType),
             state.add(Field(1)),
-            state
+            Circuit.if(
+              action.vote.equals(reverseVote).and(action.override.equals(Bool(true))),
+              state.sub(Field(0)),
+              state
+            )
           );
         },
         { state: Field(0), actionsHash: voteActionsHash }
@@ -470,5 +501,14 @@ export class AnonMultiSig extends SmartContract {
     );
 
     return votesMerkleMapRoot;
+  }
+
+  /**
+   * @notice Function to make sure that an active proposal exists
+   */
+  assertActiveProposal() {
+    let proposalHash = this.proposalHash.get();
+    this.proposalHash.assertEquals(proposalHash);
+    proposalHash.isZero().assertFalse();
   }
 }
