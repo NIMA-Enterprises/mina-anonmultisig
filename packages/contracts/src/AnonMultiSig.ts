@@ -422,7 +422,7 @@ export class AnonMultiSig extends SmartContract {
     const [votes, newVoteActionsHash] = this.countVotes(voteType);
 
     // Assert >= minimal quorum has voted in favor of your action
-    votes.assertGte(minimalQuorum, 'Minimal quorum not reached.');
+    votes.assertGreaterThanOrEqual(minimalQuorum, 'Minimal quorum not reached.');
 
     // Set new vote actions hash
     this.voteActionsHash.set(newVoteActionsHash);
@@ -441,12 +441,11 @@ export class AnonMultiSig extends SmartContract {
         this.reducer.getActions({ fromActionHash: voteActionsHash }),
         Field,
         (state: Field, action: VoteAction) => {
-          const increment = Circuit.if(
+          return Circuit.if(
             action.vote.equals(voteType),
-            Field(1),
-            Field(0)
+            state.add(Field(1)),
+            state
           );
-          return state.add(increment);
         },
         { state: Field(0), actionsHash: voteActionsHash }
       );
