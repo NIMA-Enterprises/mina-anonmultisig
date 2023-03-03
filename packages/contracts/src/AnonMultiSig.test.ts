@@ -35,8 +35,6 @@ const amount = UInt64.from(2_000_000_000);
 const numberOfMembers = 4;
 const minimalQuorum = 3;
 
-const accountCreationFee = UInt64.from(1_000_000_000);
-
 function createLocalBlockchain(): PrivateKey[] {
   const Local = Mina.LocalBlockchain({ proofsEnabled });
   Mina.setActiveInstance(Local);
