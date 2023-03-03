@@ -28,6 +28,13 @@ let map: MerkleMap = new MerkleMap();
 
 let proofsEnabled: boolean = false;
 
+// Proposal amount and receiver
+const receiver = PrivateKey.random().toPublicKey();
+const amount = UInt64.from(2_000_000);
+
+const numberOfMembers = 4;
+const minimalQuorum = 3;
+
 function createLocalBlockchain(): PrivateKey[] {
   const Local = Mina.LocalBlockchain({ proofsEnabled });
   Mina.setActiveInstance(Local);
@@ -81,21 +88,23 @@ describe('AnonMultiSig', () => {
       await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
     });
 
+    it('fund the contract', async () => {
+
+    });
+
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
       // Given
       const admin: Field = Poseidon.hash(deployerAddress.toFields());
-      const numberOfMembers = Field(4);
-      const minimalQuorum = Field(3);
 
       // Initialize the tree
-      AnonMultiSigLib.generateTree(tree, numberOfMembers, false);
+      AnonMultiSigLib.generateTree(tree, Field(numberOfMembers), false);
 
       // Get root
       const root: Field = tree.getRoot();
 
       // When
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.initialize(admin, root, minimalQuorum);
+        zkAppInstance.initialize(admin, root, Field(minimalQuorum));
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
@@ -105,7 +114,7 @@ describe('AnonMultiSig', () => {
       //console.log(zkAppInstance.votesAgainst.get());
       expect(zkAppInstance.admin.get()).toEqual(admin);
       expect(zkAppInstance.membersTreeRoot.get()).toEqual(root);
-      expect(zkAppInstance.minimalQuorum.get()).toEqual(minimalQuorum);
+      expect(zkAppInstance.minimalQuorum.get()).toEqual(Field(minimalQuorum));
     });
 
     it('correctly sets the new admin', async () => {
@@ -151,7 +160,11 @@ describe('AnonMultiSig', () => {
       const path: MyMerkleWitness = new MyMerkleWitness(
         tree.getWitness(BigInt(memberSlot))
       );
-      const proposalHash: Field = CircuitString.fromString('Test1').hash();
+
+      const proposalHash: Field = Poseidon.hash([
+        ...receiver.toFields(),
+        ...amount.toFields(),
+      ]);;
 
       const proposalId: Field = zkAppInstance.proposalId.get();
 
@@ -186,35 +199,88 @@ describe('AnonMultiSig', () => {
       expect(zkAppInstance.proposalHash.get()).toEqual(proposalHash);
     });
 
-    it('correctly instantiates a vote', async () => {
+    it('correctly instantiates quorum of votes', async () => {
+      const vote: Field = Field(1);
+      const proposalId: Field = zkAppInstance.proposalId.get();
+      const thisAddressFields: Field[] = zkAppAddress.toFields();
+
+      let vr = new MerkleMap().getRoot();
+
+      for (let memberSlot = 0; memberSlot < numberOfMembers; memberSlot++) {
+        // Given
+        const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
+        const path: MyMerkleWitness = new MyMerkleWitness(
+          tree.getWitness(BigInt(memberSlot))
+        );
+        // Define msg fields array with memberHash, vote and proposalId
+        let msg: Field[] = [memberHash, vote, proposalId, ...thisAddressFields];
+        // Get witness
+        const mapWitness = map.getWitness(memberHash);
+
+        // Assert initial votes merkle root
+        const votesInitialRoot = zkAppInstance.getVotesMerkleMapRoot();
+        expect(votesInitialRoot).toEqual(vr);
+
+        // Reconstruct signed message
+        const msgHash: Field = Poseidon.hash(msg);
+        // Sign message with admin pk
+        const signature: Signature = Signature.create(account1, [msgHash]);
+        const value: Field = Field(0);
+        // Create and send transaction
+        const txn = await Mina.transaction(deployerAddress, () => {
+          zkAppInstance.vote(
+            account1.toPublicKey(),
+            memberHash,
+            path,
+            signature,
+            mapWitness,
+            value,
+            vote
+          );
+        });
+        await txn.prove();
+        txn.sign([deployerAccount, zkAppPrivateKey]);
+        await txn.send();
+
+        map.set(memberHash, vote);
+        const newWitness = map.getWitness(memberHash);
+        const [newRoot] = newWitness.computeRootAndKey(vote);
+
+        // Then
+        // Check votes map root
+        const newVotesRoot = zkAppInstance.getVotesMerkleMapRoot();
+        expect(newVotesRoot).toEqual(newRoot);
+        vr = newVotesRoot;
+        // Check number of 'for' votes
+        const forVoteCounter = zkAppInstance.countVotes(Field(1))[0];
+        expect(forVoteCounter).toEqual(Field(memberSlot).add(1));
+        // Check number of 'against' votes
+        const againstVoteCounter = zkAppInstance.countVotes(Field(2))[0];
+        expect(againstVoteCounter).toEqual(Field(0));
+      }
+    });
+
+    it('correctly overrides a single vote', async () => {
+      const vote: Field = Field(2);
+      const proposalId: Field = zkAppInstance.proposalId.get();
+      const thisAddressFields: Field[] = zkAppAddress.toFields();
+      const memberSlot = 3;
+
       // Given
-      const memberSlot: number = 0;
       const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
       const path: MyMerkleWitness = new MyMerkleWitness(
         tree.getWitness(BigInt(memberSlot))
       );
-      const vote: Field = Field(1);
-      const proposalId: Field = zkAppInstance.proposalId.get();
-
       // Define msg fields array with memberHash, vote and proposalId
-      let msg: Field[] = [memberHash, vote, proposalId];
-
-      // Iterate over address fields and push them to msg fields array
-      const thisAddressFields: Field[] = zkAppAddress.toFields();
-      for (let i = 0; i < thisAddressFields.length; i++) {
-        msg.push(thisAddressFields[i]);
-      }
-
+      let msg: Field[] = [memberHash, vote, proposalId, ...thisAddressFields];
+      // Get witness
       const mapWitness = map.getWitness(memberHash);
-
-      const votesInitialRoot = zkAppInstance.getVotesMerkleMapRoot();
-      expect(votesInitialRoot).toEqual(new MerkleMap().getRoot());
 
       // Reconstruct signed message
       const msgHash: Field = Poseidon.hash(msg);
       // Sign message with admin pk
       const signature: Signature = Signature.create(account1, [msgHash]);
-      const value: Field = Field(0);
+      const value: Field = Field(1);
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.vote(
@@ -236,17 +302,20 @@ describe('AnonMultiSig', () => {
       const [newRoot] = newWitness.computeRootAndKey(vote);
 
       // Then
+      // Check votes map root
       const newVotesRoot = zkAppInstance.getVotesMerkleMapRoot();
       expect(newVotesRoot).toEqual(newRoot);
-
+      // Check number of 'for' votes
       const forVoteCounter = zkAppInstance.countVotes(Field(1))[0];
-      expect(forVoteCounter).toEqual(Field(1));
-
+      expect(forVoteCounter).toEqual(Field(minimalQuorum));
+      // Check number of 'against' votes
       const againstVoteCounter = zkAppInstance.countVotes(Field(2))[0];
-      expect(againstVoteCounter).toEqual(Field(0));
+      expect(againstVoteCounter).toEqual(Field(1));
     });
 
-    // TODO: Test for voting twice by same member
+    it('correctly executes proposal', async () => {
+
+    });
     // TODO: Test making proposal while there is an active proposal
     // TODO: Refactor tests
   });
