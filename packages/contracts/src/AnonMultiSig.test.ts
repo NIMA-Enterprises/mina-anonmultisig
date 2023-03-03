@@ -89,7 +89,15 @@ describe('AnonMultiSig', () => {
     });
 
     it('fund the contract', async () => {
-
+      const amount = UInt64.from(10_000_000);
+      const txn = await Mina.transaction(deployerAddress, () => {
+        const update = AccountUpdate.create(deployerAddress);
+        update.send({ to: zkAppAddress, amount });
+        update.requireSignature();
+      });
+      txn.sign([deployerAccount]);
+      await txn.send();
+      expect(zkAppInstance.account.balance.get()).toEqual(amount);
     });
 
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
