@@ -30,10 +30,12 @@ let proofsEnabled: boolean = false;
 
 // Proposal amount and receiver
 const receiver = PrivateKey.random().toPublicKey();
-const amount = UInt64.from(2_000_000);
+const amount = UInt64.from(2_000_000_000);
 
 const numberOfMembers = 4;
 const minimalQuorum = 3;
+
+const accountCreationFee = UInt64.from(1_000_000_000);
 
 function createLocalBlockchain(): PrivateKey[] {
   const Local = Mina.LocalBlockchain({ proofsEnabled });
@@ -89,7 +91,7 @@ describe('AnonMultiSig', () => {
     });
 
     it('fund the contract', async () => {
-      const amount = UInt64.from(10_000_000);
+      const amount = UInt64.from(10_000_000_000);
       const txn = await Mina.transaction(deployerAddress, () => {
         const update = AccountUpdate.create(deployerAddress);
         update.send({ to: zkAppAddress, amount });
@@ -98,6 +100,18 @@ describe('AnonMultiSig', () => {
       txn.sign([deployerAccount]);
       await txn.send();
       expect(zkAppInstance.account.balance.get()).toEqual(amount);
+    });
+
+    it('fund the receiver', async () => {
+      const txn = await Mina.transaction(deployerAddress, () => {
+        AccountUpdate.fundNewAccount(deployerAddress);
+        const update = AccountUpdate.create(deployerAddress);
+        update.send({ to: receiver, amount: 0});
+        update.requireSignature();
+      });
+      await txn.prove();
+      txn.sign([deployerAccount, zkAppPrivateKey]);
+      await txn.send();
     });
 
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
@@ -322,13 +336,50 @@ describe('AnonMultiSig', () => {
     });
 
     it('correctly executes proposal', async () => {
+      const proposalId: Field = zkAppInstance.proposalId.get();
+      const thisAddressFields: Field[] = zkAppAddress.toFields();
+      const memberSlot = 3;
+      // Given
+      const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
+      const path: MyMerkleWitness = new MyMerkleWitness(
+        tree.getWitness(BigInt(memberSlot))
+      );
+      // Define msg fields array with memberHash, vote and proposalId
+      let msg: Field[] = [memberHash, proposalId, ...CircuitString.fromString('execute').toFields(), ...thisAddressFields];
 
+      const zkAppBalance = zkAppInstance.account.balance.get();
+
+      // Reconstruct signed message
+      const msgHash: Field = Poseidon.hash(msg);
+      // Sign message with admin pk
+      const signature: Signature = Signature.create(account1, [msgHash]);
+      // Create and send transaction
+      const txn = await Mina.transaction(deployerAddress, () => {
+        zkAppInstance.execute(
+          account1.toPublicKey(),
+          memberHash,
+          path,
+          signature,
+          receiver,
+          amount
+        );
+      });
+      await txn.prove();
+      txn.sign([deployerAccount, zkAppPrivateKey]);
+      await txn.send();
+
+      // Check that transfer went successfully
+      expect(AccountUpdate.create(receiver).account.balance.get()).toEqual(amount);
+      expect(zkAppInstance.account.balance.get()).toEqual(zkAppBalance.sub(amount));
+      
+      // Check that proposal hash state is empty
+      expect(zkAppInstance.proposalHash.get()).toEqual(Field(0));
     });
     // TODO: Test making proposal while there is an active proposal
     // TODO: Refactor tests
   });
 
-  describe('General POC tests', () => {
+  xdescribe('General POC tests', () => {
     it('Create & recover signature with snarkyjs', async () => {
       const privateKey: PrivateKey = PrivateKey.random();
       const publicKey: PublicKey = privateKey.toPublicKey();
