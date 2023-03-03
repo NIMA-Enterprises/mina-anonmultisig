@@ -106,7 +106,7 @@ describe('AnonMultiSig', () => {
       const txn = await Mina.transaction(deployerAddress, () => {
         AccountUpdate.fundNewAccount(deployerAddress);
         const update = AccountUpdate.create(deployerAddress);
-        update.send({ to: receiver, amount: 0});
+        update.send({ to: receiver, amount: 0 });
         update.requireSignature();
       });
       await txn.prove();
@@ -186,7 +186,7 @@ describe('AnonMultiSig', () => {
       const proposalHash: Field = Poseidon.hash([
         ...receiver.toFields(),
         ...amount.toFields(),
-      ]);;
+      ]);
 
       const proposalId: Field = zkAppInstance.proposalId.get();
 
@@ -345,7 +345,12 @@ describe('AnonMultiSig', () => {
         tree.getWitness(BigInt(memberSlot))
       );
       // Define msg fields array with memberHash, vote and proposalId
-      let msg: Field[] = [memberHash, proposalId, ...CircuitString.fromString('execute').toFields(), ...thisAddressFields];
+      let msg: Field[] = [
+        memberHash,
+        proposalId,
+        ...CircuitString.fromString('execute').toFields(),
+        ...thisAddressFields,
+      ];
 
       const zkAppBalance = zkAppInstance.account.balance.get();
 
@@ -369,9 +374,13 @@ describe('AnonMultiSig', () => {
       await txn.send();
 
       // Check that transfer went successfully
-      expect(AccountUpdate.create(receiver).account.balance.get()).toEqual(amount);
-      expect(zkAppInstance.account.balance.get()).toEqual(zkAppBalance.sub(amount));
-      
+      expect(AccountUpdate.create(receiver).account.balance.get()).toEqual(
+        amount
+      );
+      expect(zkAppInstance.account.balance.get()).toEqual(
+        zkAppBalance.sub(amount)
+      );
+
       // Check that proposal hash state is empty
       expect(zkAppInstance.proposalHash.get()).toEqual(Field(0));
     });

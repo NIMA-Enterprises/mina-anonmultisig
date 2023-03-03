@@ -473,7 +473,11 @@ export class AnonMultiSigMock extends SmartContract {
     let voteActionsHash = this.voteActionsHash.get();
     this.voteActionsHash.assertEquals(voteActionsHash);
 
-    const reverseVote = Circuit.if(voteType.equals(Field(1)), Field(2), Field(1));
+    const reverseVote = Circuit.if(
+      voteType.equals(Field(1)),
+      Field(2),
+      Field(1)
+    );
 
     let { state: voteCounter, actionsHash: newVoteActionsHash } =
       this.reducer.reduce(
@@ -484,9 +488,11 @@ export class AnonMultiSigMock extends SmartContract {
             action.vote.equals(voteType),
             state.add(Field(1)),
             Circuit.if(
-              action.vote.equals(reverseVote).and(action.override.equals(Bool(true))),
+              action.vote
+                .equals(reverseVote)
+                .and(action.override.equals(Bool(true))),
               state.sub(Field(0)),
-            state
+              state
             )
           );
         },
