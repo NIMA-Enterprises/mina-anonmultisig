@@ -395,6 +395,9 @@ export class AnonMultiSig extends SmartContract {
     ]);
     this.proposalHash.assertEquals(computedProposalHash);
 
+    // Make sure contract has enough balance
+    this.account.balance.assertBetween(amount, UInt64.MAXINT());
+
     // Make proposed transaction
     this.send({ to, amount });
 
