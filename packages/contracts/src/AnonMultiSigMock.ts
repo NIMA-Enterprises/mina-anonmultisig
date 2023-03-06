@@ -494,7 +494,7 @@ export class AnonMultiSigMock extends SmartContract {
               action.vote
                 .equals(reverseVote)
                 .and(action.override.equals(Bool(true))),
-              state.sub(Field(0)),
+              state.sub(Field(1)),
               state
             )
           );
