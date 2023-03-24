@@ -26,7 +26,7 @@ await isReady;
 let tree: MerkleTree = new MerkleTree(MyMerkleWitness.height);
 let map: MerkleMap = new MerkleMap();
 
-let proofsEnabled: boolean = false;
+let proofsEnabled: boolean = true;
 
 // Proposal amount and receiver
 const receiver = PrivateKey.random().toPublicKey();
@@ -66,12 +66,17 @@ describe('AnonMultiSig', () => {
   let account1: PrivateKey;
 
   beforeAll(async () => {
-    if (proofsEnabled) AnonMultiSig.compile();
-
     [deployerAccount, account1] = createLocalBlockchain();
     deployerAddress = deployerAccount.toPublicKey();
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
+
+    if (proofsEnabled) {
+      console.log('compile');
+      console.time('compile');
+      await AnonMultiSig.compile();
+      console.timeEnd('compile');
+    }
     zkAppInstance = new AnonMultiSig(zkAppAddress);
   });
 
@@ -131,7 +136,6 @@ describe('AnonMultiSig', () => {
       await txn.send();
 
       // Then
-      //console.log(zkAppInstance.votesAgainst.get());
       expect(zkAppInstance.admin.get()).toEqual(admin);
       expect(zkAppInstance.membersTreeRoot.get()).toEqual(root);
       expect(zkAppInstance.minimalQuorum.get()).toEqual(Field(minimalQuorum));
