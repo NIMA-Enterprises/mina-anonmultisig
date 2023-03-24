@@ -26,7 +26,7 @@ await isReady;
 let tree: MerkleTree = new MerkleTree(MyMerkleWitness.height);
 let map: MerkleMap = new MerkleMap();
 
-let proofsEnabled: boolean = true;
+let proofsEnabled: boolean = false;
 
 // Proposal amount and receiver
 const receiver = PrivateKey.random().toPublicKey();
