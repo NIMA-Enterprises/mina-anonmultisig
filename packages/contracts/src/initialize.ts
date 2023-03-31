@@ -32,13 +32,7 @@ const zkAppInstance: AnonMultiSig = new AnonMultiSig(
 
 let tree: MerkleTree = new MerkleTree(8);
 
-// Define AnonMultiSig admin
-const adminPk: PublicKey = PublicKey.fromBase58(
-  'B62qrjGayCU1U4xAmzDfUVxMsf2FEuXNWn6VyuhDi5QuGUf7Ukh5gZ4'
-);
-
 // Given
-const admin: Field = Poseidon.hash(adminPk.toFields());
 const numberOfMembers = Field(4);
 const minimalQuorum = Field(3);
 
@@ -56,7 +50,7 @@ const txn = await Mina.transaction(
     memo: 'Initialize',
   },
   () => {
-    zkAppInstance.initialize(admin, root, minimalQuorum);
+    zkAppInstance.initialize(root, minimalQuorum);
   }
 );
 await txn.prove();

@@ -20,6 +20,8 @@ export function generateTree(
 
   if (log)
     console.log(`Private Key - Public Key - Leaf (Public Key Poseidon Hash)`);
+  let privateKeys: PrivateKey[] = [],
+    publicKeys: PublicKey[] = [];
   // Add leaves to the tree
   for (let i = 0; i < Number(numberOfMembers); i++) {
     const privateKey: PrivateKey = PrivateKey.random();
@@ -30,7 +32,10 @@ export function generateTree(
       console.log(
         `${privateKey.toBase58()} - ${publicKey.toBase58()} - ${leaf.toString()}`
       );
+    privateKeys.push(privateKey);
+    publicKeys.push(publicKey);
   }
+  return { privateKeys, publicKeys };
 }
 
 export async function deploy(
