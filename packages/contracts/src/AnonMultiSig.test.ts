@@ -38,10 +38,10 @@ let memberPublicKeys: PublicKey[];
 const numberOfMembers = 4;
 const minimalQuorum = 3;
 
-function createLocalBlockchain(): PrivateKey[] {
+function createLocalBlockchain(): PrivateKey {
   const Local = Mina.LocalBlockchain({ proofsEnabled });
   Mina.setActiveInstance(Local);
-  return [Local.testAccounts[0].privateKey, Local.testAccounts[1].privateKey];
+  return Local.testAccounts[0].privateKey;
 }
 
 async function localDeploy(
@@ -66,10 +66,8 @@ describe('AnonMultiSig', () => {
     zkAppPrivateKey: PrivateKey,
     zkAppInstance: AnonMultiSig;
 
-  let account1: PrivateKey;
-
   beforeAll(async () => {
-    [deployerAccount, account1] = createLocalBlockchain();
+    deployerAccount = createLocalBlockchain();
     deployerAddress = deployerAccount.toPublicKey();
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();

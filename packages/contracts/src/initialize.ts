@@ -6,10 +6,8 @@ import {
   isReady,
   PrivateKey,
   Field,
-  Poseidon,
   MerkleTree,
   shutdown,
-  PublicKey,
 } from 'snarkyjs';
 
 dotenv.config({ path: './.env' });
