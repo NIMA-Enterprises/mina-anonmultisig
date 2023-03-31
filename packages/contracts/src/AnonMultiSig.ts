@@ -31,7 +31,6 @@ class VoteAction extends Struct({
 }) {}
 
 export class AnonMultiSig extends SmartContract {
-  @state(Field) admin = State<Field>();
   @state(Field) membersTreeRoot = State<Field>();
   @state(Field) minimalQuorum = State<Field>();
   @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
@@ -50,15 +49,10 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    * @notice Function to initialize 'AnonMultiSig' smart contract
-   * @param admin is hash of initial administrator public key
    * @param membersTreeRoot is root of a merkle tree containing all members
    * @param minimalQuorum is minimal amount of votes needed to execute/cancel proposal
    */
-  @method initialize(
-    admin: Field,
-    membersTreeRoot: Field,
-    minimalQuorum: Field
-  ) {
+  @method initialize(membersTreeRoot: Field, minimalQuorum: Field) {
     // Set proper permissions for non-upgradeable decentralized voting
     this.account.permissions.set({
       ...Permissions.default(),
@@ -80,13 +74,6 @@ export class AnonMultiSig extends SmartContract {
     membersTreeRoot.isZero().assertFalse('Members tree root cannot be empty.');
     this.membersTreeRoot.set(membersTreeRoot);
 
-    // Set admin
-    const currentAdmin: Field = this.admin.get();
-    this.admin.assertEquals(currentAdmin);
-    currentAdmin.isZero().assertTrue();
-    admin.isZero().assertFalse('Admin cannot be empty.');
-    this.admin.set(admin);
-
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
@@ -99,69 +86,20 @@ export class AnonMultiSig extends SmartContract {
   }
 
   /**
-   * @notice Function to set new 'AnonMultiSig' administrator
-   * @param newAdmin is public key of new administrator
-   * @param signature is expireable signature provided by the current admin
-   * @param expirationTimestamp is timestamp until which signature is valid
-   */
-  @method setAdmin(
-    oldAdmin: PublicKey,
-    newAdmin: Field,
-    signature: Signature,
-    expirationTimestamp: UInt64
-  ) {
-    // Get and assert current admin
-    const currentAdmin: Field = this.admin.get();
-    this.admin.assertEquals(currentAdmin);
-    currentAdmin.assertEquals(
-      Poseidon.hash(oldAdmin.toFields()),
-      'Invalid old admin public key.'
-    );
-
-    // Require that new admin is not empty
-    newAdmin.isZero().assertFalse('Invalid new admin public key.');
-    // Require new admin is different than the current one
-    currentAdmin
-      .equals(newAdmin)
-      .assertFalse('Admin public keys must be different.');
-
-    // Define msg fields array with new admin
-    let msg: Field[] = [
-      newAdmin,
-      ...expirationTimestamp.toFields(),
-      ...this.address.toFields(),
-    ];
-
-    // Reconstruct signed message
-    const msgHash: Field = Poseidon.hash(msg);
-
-    // Make sure signature is valid
-    signature.verify(oldAdmin, [msgHash]).assertTrue('Invalid signature.');
-
-    // Require signature has not expired
-    this.network.timestamp.assertBetween(UInt64.zero, expirationTimestamp);
-
-    // Set new admin
-    this.admin.set(newAdmin);
-  }
-
-  /**
    * @notice Function to make new proposal / initiate new voting session
-   * @param admin is public key of contract administrator
-   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param member is user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    * @param proposalHash is identification hash of proposed action
    */
   @method makeProposal(
-    admin: PublicKey,
-    memberHash: Field,
+    member: PublicKey,
     path: MyMerkleWitness,
     signature: Signature,
     proposalHash: Field
   ) {
-    // Verify admin
-    this.verifyAdmin(admin);
+    // Compute member PK hash
+    const memberHash: Field = Poseidon.hash(member.toFields());
 
     // Verify membership
     this.verifyMembership(memberHash, path);
@@ -192,9 +130,9 @@ export class AnonMultiSig extends SmartContract {
 
     // Define msg fields array with memberHash, proposalHash and Id
     let msg: Field[] = [
-      memberHash,
       proposalHash,
       newProposalId,
+      ...CircuitString.fromString('propose').toFields(),
       ...this.address.toFields(),
     ];
 
@@ -202,7 +140,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msgHash]).assertTrue();
+    signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
 
     // Set new proposal hash
     this.proposalHash.set(proposalHash);
@@ -210,15 +148,13 @@ export class AnonMultiSig extends SmartContract {
 
   /**
    * @notice Function to instantiate a vote on active proposal
-   * @param admin is public key of contract administrator
-   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param member is user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    * @param vote is users support for current proposal for/true or against/false
    */
   @method vote(
-    admin: PublicKey,
-    memberHash: Field,
+    member: PublicKey,
     path: MyMerkleWitness,
     signature: Signature,
     mapPath: MerkleMapWitness,
@@ -228,8 +164,8 @@ export class AnonMultiSig extends SmartContract {
     // Assert active proposal existance
     this.assertActiveProposal();
 
-    // Verify admin
-    this.verifyAdmin(admin);
+    // Compute member PK hash
+    const memberHash: Field = Poseidon.hash(member.toFields());
 
     // Verify membership
     this.verifyMembership(memberHash, path);
@@ -249,9 +185,9 @@ export class AnonMultiSig extends SmartContract {
 
     // Define msg fields array with memberHash, vote and proposalId
     let msg: Field[] = [
-      memberHash,
       vote,
       proposalId,
+      ...CircuitString.fromString('vote').toFields(),
       ...this.address.toFields(),
     ];
 
@@ -259,7 +195,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msgHash]).assertTrue();
+    signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
 
     // Get current votes merkle map root
     const votesMerkleMapRoot = this.getVotesMerkleMapRoot();
@@ -293,14 +229,12 @@ export class AnonMultiSig extends SmartContract {
   /**
    * @notice Function to cancel active proposal
    * @dev Cancel is possible only when >= minimalQuorum of members has voted against the proposal
-   * @param admin is public key of contract administrator
-   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param member is user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    */
   @method cancel(
-    admin: PublicKey,
-    memberHash: Field,
+    member: PublicKey,
     path: MyMerkleWitness,
     signature: Signature
   ) {
@@ -310,8 +244,8 @@ export class AnonMultiSig extends SmartContract {
     // Assert minimal quorum has voted in favor of canceling the proposal
     this.assertVotesAndSetActionsHash(Field(2));
 
-    // Verify admin
-    this.verifyAdmin(admin);
+    // Compute member PK hash
+    const memberHash: Field = Poseidon.hash(member.toFields());
 
     // Verify membership
     this.verifyMembership(memberHash, path);
@@ -322,7 +256,6 @@ export class AnonMultiSig extends SmartContract {
 
     // Define msg fields array with memberHash, vote and proposalId
     let msg: Field[] = [
-      memberHash,
       proposalId,
       ...CircuitString.fromString('cancel').toFields(),
       ...this.address.toFields(),
@@ -332,7 +265,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msgHash]).assertTrue('Invalid signature.');
+    signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
 
     // Empty the proposal hash state
     this.proposalHash.set(Field(0));
@@ -341,16 +274,14 @@ export class AnonMultiSig extends SmartContract {
   /**
    * @notice Function to execute active proposal
    * @dev Execution is possible only when >= minimalQuorum of members has voted for the proposal
-   * @param admin is public key of contract administrator
-   * @param memberHash is hash of user public key who's membership needs to be verified
+   * @param member is user public key who's membership needs to be verified
    * @param path is proof of user belonging in the members tree
    * @param signature is administrator's confirmation signature
    * @param to account receiving proposed funds
    * @param amount proposed funds
    */
   @method execute(
-    admin: PublicKey,
-    memberHash: Field,
+    member: PublicKey,
     path: MyMerkleWitness,
     signature: Signature,
     to: PublicKey,
@@ -359,8 +290,8 @@ export class AnonMultiSig extends SmartContract {
     // Assert minimal quorum has voted in favor of proposal execution
     this.assertVotesAndSetActionsHash(Field(1));
 
-    // Verify admin
-    this.verifyAdmin(admin);
+    // Compute member PK hash
+    const memberHash: Field = Poseidon.hash(member.toFields());
 
     // Verify membership
     this.verifyMembership(memberHash, path);
@@ -371,7 +302,6 @@ export class AnonMultiSig extends SmartContract {
 
     // Define msg fields array with memberHash, vote and proposalId
     let msg: Field[] = [
-      memberHash,
       proposalId,
       ...CircuitString.fromString('execute').toFields(),
       ...this.address.toFields(),
@@ -381,7 +311,7 @@ export class AnonMultiSig extends SmartContract {
     const msgHash: Field = Poseidon.hash(msg);
 
     // Verify Signature
-    signature.verify(admin, [msgHash]).assertTrue('Invalid signature.');
+    signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
 
     // Assert proposalHash
     const proposalHash: Field = this.proposalHash.get();
@@ -403,19 +333,6 @@ export class AnonMultiSig extends SmartContract {
 
     // Empty the proposal hash state
     this.proposalHash.set(Field(0));
-  }
-
-  /**
-   * @notice Function to verify admin
-   * @param admin public key to be verified
-   */
-  verifyAdmin(admin: PublicKey) {
-    const contractAdmin: Field = this.admin.get();
-    this.admin.assertEquals(contractAdmin);
-    contractAdmin.assertEquals(
-      Poseidon.hash(admin.toFields()),
-      'Invalid admin public key.'
-    );
   }
 
   /**
