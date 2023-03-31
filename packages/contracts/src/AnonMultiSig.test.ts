@@ -32,6 +32,9 @@ let proofsEnabled: boolean = false;
 const receiver = PrivateKey.random().toPublicKey();
 const amount = UInt64.from(2_000_000_000);
 
+let memberPrivateKeys: PrivateKey[];
+let memberPublicKeys: PublicKey[];
+
 const numberOfMembers = 4;
 const minimalQuorum = 3;
 
@@ -118,69 +121,35 @@ describe('AnonMultiSig', () => {
     });
 
     it('correctly initializes `AnonMultiSig` smart contract', async () => {
-      // Given
-      const admin: Field = Poseidon.hash(deployerAddress.toFields());
-
       // Initialize the tree
-      AnonMultiSigLib.generateTree(tree, Field(numberOfMembers), false);
+      const returns = AnonMultiSigLib.generateTree(
+        tree,
+        Field(numberOfMembers),
+        false
+      );
+      memberPrivateKeys = returns.privateKeys;
+      memberPublicKeys = returns.publicKeys;
 
       // Get root
       const root: Field = tree.getRoot();
 
       // When
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.initialize(admin, root, Field(minimalQuorum));
+        zkAppInstance.initialize(root, Field(minimalQuorum));
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
       await txn.send();
 
       // Then
-      expect(zkAppInstance.admin.get()).toEqual(admin);
       expect(zkAppInstance.membersTreeRoot.get()).toEqual(root);
       expect(zkAppInstance.minimalQuorum.get()).toEqual(Field(minimalQuorum));
-    });
-
-    it('correctly sets the new admin', async () => {
-      // Given
-      const newAdmin: Field = Poseidon.hash(account1.toPublicKey().toFields());
-      // Expiration timestamp which is valid for 2 minutes after created
-      const expirationTimestamp: UInt64 = UInt64.from(
-        zkAppInstance.network.timestamp.get()
-      ).add(UInt64.from(120));
-      // Compute message
-      let msg: Field[] = [
-        newAdmin,
-        ...expirationTimestamp.toFields(),
-        ...zkAppAddress.toFields(),
-      ];
-
-      // Compute message hash
-      const msgHash: Field = Poseidon.hash(msg);
-      // Deployer is current admin
-      const signature: Signature = Signature.create(deployerAccount, [msgHash]);
-
-      // When
-      const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.setAdmin(
-          deployerAddress,
-          newAdmin,
-          signature,
-          expirationTimestamp
-        );
-      });
-      await txn.prove();
-      txn.sign([deployerAccount]);
-      await txn.send();
-
-      // Then
-      expect(zkAppInstance.admin.get()).toEqual(newAdmin);
     });
 
     it('correctly makes a proposal', async () => {
       // Given
       const memberSlot: number = 0;
-      const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
+      const member: PublicKey = memberPublicKeys[memberSlot];
       const path: MyMerkleWitness = new MyMerkleWitness(
         tree.getWitness(BigInt(memberSlot))
       );
@@ -192,28 +161,25 @@ describe('AnonMultiSig', () => {
 
       const proposalId: Field = zkAppInstance.proposalId.get();
 
-      // Define msg fields array with memberHash, proposalHash and Id
+      // Define msg fields array with proposalHash and Id
       let msg: Field[] = [
-        memberHash,
         proposalHash,
         proposalId.add(1),
+        ...CircuitString.fromString('propose').toFields(),
         ...zkAppAddress.toFields(),
       ];
 
       let msgHash = Poseidon.hash(msg);
 
       // Create signature
-      const signature: Signature = Signature.create(account1, [msgHash]);
+      const signature: Signature = Signature.create(
+        memberPrivateKeys[memberSlot],
+        [msgHash]
+      );
 
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.makeProposal(
-          account1.toPublicKey(),
-          memberHash,
-          path,
-          signature,
-          proposalHash
-        );
+        zkAppInstance.makeProposal(member, path, signature, proposalHash);
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
@@ -233,11 +199,17 @@ describe('AnonMultiSig', () => {
       for (let memberSlot = 0; memberSlot < numberOfMembers; memberSlot++) {
         // Given
         const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
+        const member = memberPublicKeys[memberSlot];
         const path: MyMerkleWitness = new MyMerkleWitness(
           tree.getWitness(BigInt(memberSlot))
         );
-        // Define msg fields array with memberHash, vote and proposalId
-        let msg: Field[] = [memberHash, vote, proposalId, ...thisAddressFields];
+        // Define msg fields array with vote and proposalId
+        let msg: Field[] = [
+          vote,
+          proposalId,
+          ...CircuitString.fromString('vote').toFields(),
+          ...thisAddressFields,
+        ];
         // Get witness
         const mapWitness = map.getWitness(memberHash);
 
@@ -248,19 +220,14 @@ describe('AnonMultiSig', () => {
         // Reconstruct signed message
         const msgHash: Field = Poseidon.hash(msg);
         // Sign message with admin pk
-        const signature: Signature = Signature.create(account1, [msgHash]);
+        const signature: Signature = Signature.create(
+          memberPrivateKeys[memberSlot],
+          [msgHash]
+        );
         const value: Field = Field(0);
         // Create and send transaction
         const txn = await Mina.transaction(deployerAddress, () => {
-          zkAppInstance.vote(
-            account1.toPublicKey(),
-            memberHash,
-            path,
-            signature,
-            mapWitness,
-            value,
-            vote
-          );
+          zkAppInstance.vote(member, path, signature, mapWitness, value, vote);
         });
         await txn.prove();
         txn.sign([deployerAccount, zkAppPrivateKey]);
@@ -291,31 +258,32 @@ describe('AnonMultiSig', () => {
       const memberSlot = 3;
 
       // Given
+      const member: PublicKey = memberPublicKeys[memberSlot];
       const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
       const path: MyMerkleWitness = new MyMerkleWitness(
         tree.getWitness(BigInt(memberSlot))
       );
       // Define msg fields array with memberHash, vote and proposalId
-      let msg: Field[] = [memberHash, vote, proposalId, ...thisAddressFields];
+      let msg: Field[] = [
+        vote,
+        proposalId,
+        ...CircuitString.fromString('vote').toFields(),
+        ...thisAddressFields,
+      ];
       // Get witness
       const mapWitness = map.getWitness(memberHash);
 
       // Reconstruct signed message
       const msgHash: Field = Poseidon.hash(msg);
       // Sign message with admin pk
-      const signature: Signature = Signature.create(account1, [msgHash]);
+      const signature: Signature = Signature.create(
+        memberPrivateKeys[memberSlot],
+        [msgHash]
+      );
       const value: Field = Field(1);
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.vote(
-          account1.toPublicKey(),
-          memberHash,
-          path,
-          signature,
-          mapWitness,
-          value,
-          vote
-        );
+        zkAppInstance.vote(member, path, signature, mapWitness, value, vote);
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
@@ -341,14 +309,13 @@ describe('AnonMultiSig', () => {
       const proposalId: Field = zkAppInstance.proposalId.get();
       const thisAddressFields: Field[] = zkAppAddress.toFields();
       const memberSlot = 3;
+      const member: PublicKey = memberPublicKeys[memberSlot];
       // Given
-      const memberHash: Field = tree.getNode(0, BigInt(memberSlot));
       const path: MyMerkleWitness = new MyMerkleWitness(
         tree.getWitness(BigInt(memberSlot))
       );
       // Define msg fields array with memberHash, vote and proposalId
       let msg: Field[] = [
-        memberHash,
         proposalId,
         ...CircuitString.fromString('execute').toFields(),
         ...thisAddressFields,
@@ -359,17 +326,13 @@ describe('AnonMultiSig', () => {
       // Reconstruct signed message
       const msgHash: Field = Poseidon.hash(msg);
       // Sign message with admin pk
-      const signature: Signature = Signature.create(account1, [msgHash]);
+      const signature: Signature = Signature.create(
+        memberPrivateKeys[memberSlot],
+        [msgHash]
+      );
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.execute(
-          account1.toPublicKey(),
-          memberHash,
-          path,
-          signature,
-          receiver,
-          amount
-        );
+        zkAppInstance.execute(member, path, signature, receiver, amount);
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
