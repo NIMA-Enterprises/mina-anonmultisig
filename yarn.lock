@@ -11680,10 +11680,10 @@ snarkyjs@^0.7.3:
     reflect-metadata "^0.1.13"
     tslib "^2.3.0"
 
-snarkyjs@^0.9.5:
-  version "0.9.5"
-  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.9.5.tgz#97da2c7fb3fe861117334f73be3d7660c9c11e3d"
-  integrity sha512-Uve0WBf8LCXp4udRk2EwnnlWmmSqE7CNn+9EEI2pn+tnJAFwT+xU1rZtzAZBsLfWCmOvU2UJ0YeXIQq0izJ0Og==
+snarkyjs@^0.9.6:
+  version "0.9.6"
+  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.9.6.tgz#53fecc556c92e1c21404cd154986c7c52d48da48"
+  integrity sha512-/G3LyGyVuMBYPnNv7l9x/bsDjBUwj6cl2W484bxgwXL9iMwPi38dmm0+EzQij6pYaD0cFMcHWNrmxaxwyhxFbg==
   dependencies:
     blakejs "1.2.1"
     detect-gpu "^5.0.5"

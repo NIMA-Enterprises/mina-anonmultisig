@@ -400,7 +400,7 @@ export class AnonMultiSigMock extends SmartContract {
 
     let { state: voteCounter, actionsHash: newVoteActionsHash } =
       this.reducer.reduce(
-        this.reducer.getActions({ fromActionHash: voteActionsHash }),
+        this.reducer.getActions({ fromActionState: voteActionsHash }),
         Field,
         (state: Field, action: VoteAction) => {
           return Circuit.if(
@@ -429,7 +429,7 @@ export class AnonMultiSigMock extends SmartContract {
     this.voteActionsHash.assertEquals(voteActionsHash);
 
     const { state: votesMerkleMapRoot } = this.reducer.reduce(
-      this.reducer.getActions({ fromActionHash: voteActionsHash }),
+      this.reducer.getActions({ fromActionState: voteActionsHash }),
       Field,
       (state: Field, action: VoteAction) => {
         return action.merkleMapRoot;
