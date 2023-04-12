@@ -25,6 +25,7 @@
 		"@tanstack/react-table": "^8.8.4",
 		"@tremor/react": "^1.8.0",
 		"buffer": "^6.0.3",
+		"business-logic-anonmultisig": "*",
 		"classnames": "^2.3.1",
 		"concurrently": "^8.0.1",
 		"dayjs": "^1.11.7",
@@ -40,10 +41,10 @@
 		"tailwind-merge": "^1.8.1",
 		"truncate-eth-address": "^1.0.2",
 		"usehooks-ts": "^2.6.0",
+		"vite-plugin-server-headers": "^0.0.0",
 		"wagmi": "^0.12.9",
-		"zod": "^3.20.2",
-		"business-logic-anonmultisig": "*",
-		"wallet-connection": "*"
+		"wallet-connection": "*",
+		"zod": "^3.20.2"
 	},
 	"devDependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",

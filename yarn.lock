@@ -5254,6 +5254,11 @@ combined-stream@^1.0.8:
   dependencies:
     delayed-stream "~1.0.0"
 
+comlink@^4.4.0:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/comlink/-/comlink-4.4.1.tgz#e568b8e86410b809e8600eb2cf40c189371ef981"
+  integrity sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==
+
 commander@^2.20.3:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
@@ -11754,6 +11759,11 @@ vite-plugin-mkcert@^1.14.0:
     axios "^1.2.2"
     debug "^4.3.4"
     picocolors "^1.0.0"
+
+vite-plugin-server-headers@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/vite-plugin-server-headers/-/vite-plugin-server-headers-0.0.0.tgz#e8d033bb0fa9cea6b7a17b4275f4c07efcc9fcc7"
+  integrity sha512-YRVTHEXoOuMm/Ui80NOuGsAks/pT75beEWdyc5tNcCkeKrIH1C7bU/IAHEpcKDdMAYKKM6H/mPCRbTjTm+25OA==
 
 vite-tsconfig-paths@^4.0.8:
   version "4.2.0"

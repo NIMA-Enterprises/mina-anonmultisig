@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import mkcert from "vite-plugin-mkcert";
+import headers from "vite-plugin-server-headers";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
@@ -19,6 +20,11 @@ export default defineConfig({
 		react(),
 		tsconfigPaths({ projects: ["./tsconfig.json"] }),
 		mkcert(),
+
+		headers({
+			"Cross-Origin-Opener-Policy": "same-origin",
+			"Cross-Origin-Embedder-Policy": "require-corp",
+		}),
 	],
 
 	preview: {
