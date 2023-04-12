@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 
 import { cx } from "src/utils";
+import { ConnectButton } from "wallet-connection";
 
 const PageTemplateWithMenuAndFooter = () => {
 	const pageClassName = cx("min-h-screen flex flex-col", {
@@ -11,6 +12,7 @@ const PageTemplateWithMenuAndFooter = () => {
 	return (
 		<div className={pageClassName}>
 			{/* <Menu /> */}
+			<ConnectButton />
 			<div className="flex-grow">
 				<Outlet />
 			</div>

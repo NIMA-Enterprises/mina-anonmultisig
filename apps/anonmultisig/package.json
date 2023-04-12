@@ -42,7 +42,8 @@
 		"usehooks-ts": "^2.6.0",
 		"wagmi": "^0.12.9",
 		"zod": "^3.20.2",
-		"business-logic-anonmultisig": "*"
+		"business-logic-anonmultisig": "*",
+		"wallet-connection": "*"
 	},
 	"devDependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",

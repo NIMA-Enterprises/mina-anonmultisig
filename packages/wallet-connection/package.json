@@ -1,0 +1,22 @@
+{
+	"name": "wallet-connection",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"@aurowallet/mina-provider": "^0.1.4",
+		"@rainbow-me/rainbowkit": "^0.12.7",
+		"ethers": "^5.7.2",
+		"react": "^18.2.0",
+		"wagmi": "^0.12.9",
+		"zod": "^3.19.1"
+	},
+	"devDependencies": {
+		"@types/react": "^18.0.15"
+	}
+}
