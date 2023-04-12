@@ -4,7 +4,8 @@
 		"packages": [
 			"packages/*",
 			"packages/services/*",
-			"apps/*"
+			"apps/*",
+			"scripts/ngrokqr"
 		],
 		"nohoist": [
 			"**/flowbite",
@@ -36,14 +37,13 @@
 		"lint": "turbo run lint",
 		"clean": "turbo run clean && rm -rf node_modules",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
-		"start:anonmultisig": "yarn workspace anonmultisig start",
+		"start:anonmultisig": "yarn workspace anonmultisig start:host",
 		"deploy:anonmultisig": "yarn workspace anonmultisig deploy:prod",
 		"postinstall": "yarn husky install && cp ./gitmojis.json ./node_modules/commitlint-plugin-gitmoji/lib/gitmojis.json",
 		"hook:prepare-commit-msg": "node scripts/prepare-commit-msg.js"
 	},
 	"devDependencies": {
 		"configs": "*",
-		"styles": "*",
 		"@commitlint/cli": "^17.0.3",
 		"@commitlint/config-conventional": "^17.0.3",
 		"@gitmoji/commit-types": "^1.1.5",
@@ -58,6 +58,6 @@
 		"stylelint": "^14.9.1",
 		"turbo": "latest",
 		"typescript": "^4.7.4",
-		"sass": "latest"
+		"prettier-plugin-tailwindcss": "^0.2.1"
 	}
 }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<!-- <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" /> -->
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap");
+			@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+		</style>
+
+		<title>Anonmultisig App</title>
+
+		<!-- METATAGS -->
+
+		<!--
+			Don't delete METATAG__PLACEHOLDER comments
+			They are used by firebase preRender function
+		-->
+
+		<!-- Facebook metatags -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Anonmultisig" />
+		<!-- METATAG__PLACEHOLDER__OG__TITLE -->
+		<!-- METATAG__PLACEHOLDER__OG__DESCRIPTION -->
+		<!-- METATAG__PLACEHOLDER__OG__IMAGE -->
+		<!-- METATAG__PLACEHOLDER__OG__URL -->
+
+		<!-- Twitter metatags -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<!-- METATAG__PLACEHOLDER__TWITTER__TITLE -->
+		<!-- METATAG__PLACEHOLDER__TWITTER__DESCRIPTION -->
+		<!-- METATAG__PLACEHOLDER__TWITTER__IMAGE -->
+		<script>
+			window.global = window;
+		</script>
+		<script type="module">
+			import { Buffer } from "buffer";
+			// import EventEmitter from "events";
+			import process from "process";
+
+			window.Buffer = Buffer;
+			window.process = process;
+			// window.EventEmitter = EventEmitter;
+		</script>
+	</head>
+
+	<body>
+		<div id="root"></div>
+		<script type="module" src="./src/Main.tsx"></script>
+	</body>
+</html>
