@@ -1,5 +1,5 @@
-import { createAnonMultiSigContract } from "../../createAnonMultiSigContract";
-import { expose } from "comlink";
+import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
+import { generateProposalHash } from "../generateProposalHash";
 import { CircuitString, Field, Poseidon, PublicKey, UInt64 } from "snarkyjs";
 
 const generateMessageHash = async ({
@@ -15,12 +15,10 @@ const generateMessageHash = async ({
 		contractAddress,
 	});
 
-	const receiver = PublicKey.fromBase58(receiverAddress);
-
-	const proposalHash = Poseidon.hash([
-		...receiver.toFields(),
-		...UInt64.from(amount).toFields(),
-	]);
+	const { proposalHash } = generateProposalHash({
+		receiverAddress,
+		amount,
+	});
 
 	const proposalId = zkAppInstance.proposalId.get();
 
@@ -36,10 +34,4 @@ const generateMessageHash = async ({
 	};
 };
 
-const worker = {
-	generateMessageHash,
-};
-
-export type GenerateMessageHashType = typeof worker;
-
-expose(worker);
+export { generateMessageHash };

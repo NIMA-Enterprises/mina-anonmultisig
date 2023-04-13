@@ -1,7 +1,6 @@
-import { createAnonMultiSigContract } from "../../createAnonMultiSigContract";
-import { expose } from "comlink";
+import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
 
-const readContract = async ({
+const readStateFields = async ({
 	contractAddress,
 }: {
 	contractAddress: string;
@@ -26,10 +25,4 @@ const readContract = async ({
 	};
 };
 
-const worker = {
-	readContract,
-};
-
-export type ReadContractType = typeof worker;
-
-expose(worker);
+export { readStateFields };

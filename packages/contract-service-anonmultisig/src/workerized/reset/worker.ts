@@ -1,4 +1,4 @@
-import { createAnonMultiSigContract } from "../../createAnonMultiSigContract";
+import { createAnonMultiSigContract } from "../../pure";
 import { expose } from "comlink";
 import { Mina, PrivateKey, PublicKey } from "snarkyjs";
 

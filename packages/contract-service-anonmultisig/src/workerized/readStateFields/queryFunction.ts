@@ -1,19 +1,18 @@
-import { createAnonMultiSigContract } from "../../createAnonMultiSigContract";
-import { ReadContractType } from "./worker";
+import { ReadStateFieldsType } from "./worker";
 import { wrap } from "comlink";
 import { Field } from "snarkyjs";
 
 const readStateFields = async (
-	...args: Parameters<ReadContractType["readContract"]>
+	...args: Parameters<ReadStateFieldsType["readStateFields"]>
 ) => {
-	const { readContract } = wrap<ReadContractType>(
+	const { readStateFields } = wrap<ReadStateFieldsType>(
 		new Worker(new URL("./worker.ts", import.meta.url), {
 			name: "readStateFields",
 			type: "module",
 		}),
 	);
 
-	const workerResult = await readContract(...args);
+	const workerResult = await readStateFields(...args);
 
 	const membersTreeRoot = Field.fromJSON(workerResult.membersTreeRoot);
 	const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);

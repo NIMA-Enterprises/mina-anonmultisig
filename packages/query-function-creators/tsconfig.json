@@ -1,5 +1,5 @@
 {
 	"extends": "configs/react-library.json",
-	"include": [".", "src/service/pure/createAnonMultiSigContract"],
+	"include": ["."],
 	"exclude": ["dist", "build", "node_modules"]
 }

@@ -1,5 +1,5 @@
 {
-	"name": "business-logic-anonmultisig",
+	"name": "backend-service-anonmultisig",
 	"version": "1.0.0",
 	"main": "src",
 	"sideEffects": false,
@@ -9,12 +9,10 @@
 		"clean": "rm -rf .turbo && rm -rf node_modules"
 	},
 	"dependencies": {
-		"@reduxjs/toolkit": "^1.9.1",
-		"get-endpoint-creators": "*",
+		"snarkyjs": "^0.9.6",
+		"zod": "^3.19.1",
 		"contract-service-anonmultisig": "*",
-		"sign-service": "*",
-		"backend-service-anonmultisig": "*",
-		"snarkyjs": "^0.9.6"
+		"query-function-creators": "*"
 	},
 	"devDependencies": {}
 }
