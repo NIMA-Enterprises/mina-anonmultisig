@@ -17,12 +17,12 @@ const generateMessageHash = async ({
 
 	const receiver = PublicKey.fromBase58(receiverAddress);
 
-	const proposalHash: Field = Poseidon.hash([
+	const proposalHash = Poseidon.hash([
 		...receiver.toFields(),
 		...UInt64.from(amount).toFields(),
 	]);
 
-	const proposalId: Field = zkAppInstance.proposalId.get();
+	const proposalId = zkAppInstance.proposalId.get();
 
 	const messageHash = Poseidon.hash([
 		proposalHash,
