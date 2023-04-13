@@ -1,5 +1,5 @@
 {
-	"name": "business-logic-anonmultisig",
+	"name": "sign-service",
 	"version": "1.0.0",
 	"main": "src",
 	"sideEffects": false,
@@ -9,10 +9,8 @@
 		"clean": "rm -rf .turbo && rm -rf node_modules"
 	},
 	"dependencies": {
-		"@reduxjs/toolkit": "^1.9.1",
-		"get-endpoint-creators": "*",
-		"contract-service-anonmultisig": "*",
-		"sign-service": "*"
+		"wallet-connection": "*",
+		"snarkyjs": "^0.9.6"
 	},
 	"devDependencies": {}
 }
