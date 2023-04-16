@@ -12,6 +12,7 @@
 		"comlink": "^4.4.0",
 		"contracts": "*",
 		"get-endpoint-creators": "*",
+		"mina-signer": "^2.0.3",
 		"snarkyjs": "^0.9.6",
 		"wallet-connection": "*",
 		"zod": "^3.19.1"

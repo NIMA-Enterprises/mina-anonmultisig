@@ -2,6 +2,7 @@ import mockedData from "./mockedData";
 import { createGetMakeProposalWithessResponseModel } from "./model";
 import { schema } from "./schema";
 import {
+	MyMerkleWitness,
 	buildTree,
 	generateMemberHash,
 	getWitness,
@@ -19,10 +20,10 @@ const getWitnessBackend = createRequestQueryFunction({
 		const { memberHash } = generateMemberHash({ address: memberAddress });
 
 		const memberHashes = [
-			"15498290784265734118549867675140481920882126543766521419782901480536780576651",
-			"26606380939733954246583740718331481734349425354101789056907048547082028697199",
-			"2167453380387771925174594421988550125935501591112495928843012012296676244736",
-			"18403404975422813728128012111530850154068609400887699774712489263278958190813",
+			"27786589733633704612958905464736150309252271263215292495520663003876835652231",
+			"18912330275273379416778032745642205832459522663926664699299799400101993516640",
+			"6983273085396132813869016891633329893217382221722148972206827128290160879058",
+			"18409659316376614128232859640621288344598681212266794919612725214271117942343",
 		];
 
 		const memberSlot = memberHashes.findIndex((el) => el === memberHash);
@@ -36,17 +37,19 @@ const getWitnessBackend = createRequestQueryFunction({
 		const { tree } = buildTree({ memberHashes });
 		const { path } = await getWitness({ tree, memberSlot });
 
-		return path;
+		console.log({ memberHash, memberHashes, memberSlot, tree, path });
+
+		return path.toJSON();
 	},
 	isMockingEnabled: true,
 });
 
-declare global {
-	interface Window {
-		getWitnessBackend: typeof getWitnessBackend;
-	}
-}
+// declare global {
+// 	interface Window {
+// 		getWitnessBackend: typeof getWitnessBackend;
+// 	}
+// }
 
-window.getWitnessBackend = getWitnessBackend;
+// window.getWitnessBackend = getWitnessBackend;
 
 export { getWitnessBackend };

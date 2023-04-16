@@ -13,6 +13,7 @@ const generateMessageHash = async ({
 }) => {
 	const { zkAppInstance, zkAppAddress } = await createAnonMultiSigContract({
 		contractAddress,
+		skipCompile: true,
 	});
 
 	const { proposalHash } = generateProposalHash({

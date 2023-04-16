@@ -1,6 +1,5 @@
-import { MerkleTree, MerkleWitness } from "snarkyjs";
-
-class MyMerkleWitness extends MerkleWitness(8) {}
+import { MyMerkleWitness } from "../MyMerkleWitness";
+import { MerkleTree } from "snarkyjs";
 
 const getWitness = async ({
 	tree,

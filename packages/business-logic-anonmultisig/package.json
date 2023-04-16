@@ -14,7 +14,8 @@
 		"contract-service-anonmultisig": "*",
 		"sign-service": "*",
 		"backend-service-anonmultisig": "*",
-		"snarkyjs": "^0.9.6"
+		"snarkyjs": "^0.9.6",
+		"wallet-connection": "*"
 	},
 	"devDependencies": {}
 }
