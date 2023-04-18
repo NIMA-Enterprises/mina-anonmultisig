@@ -6943,10 +6943,10 @@ slice-ansi@^4.0.0:
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
 
-snarkyjs@^0.9.6:
-  version "0.9.6"
-  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.9.6.tgz#53fecc556c92e1c21404cd154986c7c52d48da48"
-  integrity sha512-/G3LyGyVuMBYPnNv7l9x/bsDjBUwj6cl2W484bxgwXL9iMwPi38dmm0+EzQij6pYaD0cFMcHWNrmxaxwyhxFbg==
+snarkyjs@^0.9.8:
+  version "0.9.8"
+  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.9.8.tgz#1aa0052f322679f1b53c5ea0ac9ae2e0c799d3a3"
+  integrity sha512-wGimYTdYPN1yqvUurFul6W9oq1uOUWUjg2bQSEnY5AAp5S2WcuVtpnfYdGwCUpdrTJZHnz1pkyJSOFWbn+JNqA==
   dependencies:
     blakejs "1.2.1"
     detect-gpu "^5.0.5"
