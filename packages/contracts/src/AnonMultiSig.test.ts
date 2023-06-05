@@ -1,8 +1,6 @@
 import { AnonMultiSig } from './AnonMultiSig';
 import * as AnonMultiSigLib from './AnonMultiSigLib';
 import {
-  isReady,
-  shutdown,
   Field,
   Mina,
   PrivateKey,
@@ -20,8 +18,6 @@ import {
 } from 'snarkyjs';
 
 class MyMerkleWitness extends MerkleWitness(8) {}
-
-await isReady;
 
 let tree: MerkleTree = new MerkleTree(MyMerkleWitness.height);
 let map: MerkleMap = new MerkleMap();
@@ -79,13 +75,6 @@ describe('AnonMultiSig', () => {
       console.timeEnd('compile');
     }
     zkAppInstance = new AnonMultiSig(zkAppAddress);
-  });
-
-  afterAll(async () => {
-    // `shutdown()` internally calls `process.exit()` which will exit the running Jest process early.
-    // Specifying a timeout of 0 is a workaround to defer `shutdown()` until Jest is done running all tests.
-    // This should be fixed with https://github.com/MinaProtocol/mina/issues/10943
-    setTimeout(shutdown, 0);
   });
 
   describe('General flow tests', () => {
