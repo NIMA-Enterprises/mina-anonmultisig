@@ -70,7 +70,9 @@ export class AnonMultiSig extends SmartContract {
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
-    currentMembersTreeRoot.equals(0).assertTrue('Members tree root already set.');
+    currentMembersTreeRoot
+      .equals(0)
+      .assertTrue('Members tree root already set.');
     membersTreeRoot.equals(0).assertFalse('Members tree root cannot be empty.');
     this.membersTreeRoot.set(membersTreeRoot);
 
@@ -287,6 +289,9 @@ export class AnonMultiSig extends SmartContract {
     to: PublicKey,
     amount: UInt64
   ) {
+    // Assert proposalHash
+    this.assertActiveProposal();
+
     // Assert minimal quorum has voted in favor of proposal execution
     this.assertVotesAndSetActionsHash(Field(1));
 
@@ -312,11 +317,6 @@ export class AnonMultiSig extends SmartContract {
 
     // Verify Signature
     signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
-
-    // Assert proposalHash
-    const proposalHash: Field = this.proposalHash.get();
-    this.proposalHash.assertEquals(proposalHash);
-    proposalHash.equals(0).assertFalse('No active proposal.');
 
     // Assert provided proposal data
     const computedProposalHash = Poseidon.hash([
@@ -435,6 +435,6 @@ export class AnonMultiSig extends SmartContract {
   assertActiveProposal() {
     let proposalHash = this.proposalHash.get();
     this.proposalHash.assertEquals(proposalHash);
-    proposalHash.equals(0).assertFalse();
+    proposalHash.equals(0).assertFalse('No active proposal.');
   }
 }
