@@ -70,14 +70,14 @@ export class AnonMultiSig extends SmartContract {
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
-    currentMembersTreeRoot.equals(0).assertTrue();
+    currentMembersTreeRoot.equals(0).assertTrue('Members tree root already set.');
     membersTreeRoot.equals(0).assertFalse('Members tree root cannot be empty.');
     this.membersTreeRoot.set(membersTreeRoot);
 
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
-    currentMinimalQuorum.equals(0).assertTrue();
+    currentMinimalQuorum.equals(0).assertTrue('Minimal quorum already set.');
     minimalQuorum.equals(0).assertFalse('Minimal quorum cannot be empty.');
     this.minimalQuorum.set(minimalQuorum);
 
@@ -107,10 +107,10 @@ export class AnonMultiSig extends SmartContract {
     // Assert proposal hash state is empty
     const currentProposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(currentProposalHash);
-    currentProposalHash.equals(0).assertTrue();
+    currentProposalHash.equals(0).assertTrue('Voting session in progress.');
 
     // Assert new proposal hash is not empty field
-    proposalHash.equals(0).assertFalse();
+    proposalHash.equals(0).assertFalse('Invalid proposal hash.');
 
     // Increase proposal nonce by 1
     const proposalId: Field = this.proposalId.get();
@@ -316,7 +316,7 @@ export class AnonMultiSig extends SmartContract {
     // Assert proposalHash
     const proposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(proposalHash);
-    proposalHash.equals(0).assertFalse();
+    proposalHash.equals(0).assertFalse('No active proposal.');
 
     // Assert provided proposal data
     const computedProposalHash = Poseidon.hash([
