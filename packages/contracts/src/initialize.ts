@@ -1,18 +1,9 @@
 import { AnonMultiSig } from './AnonMultiSig.js';
 import * as AnonMultiSigLib from './AnonMultiSigLib.js';
 import * as dotenv from 'dotenv';
-import {
-  Mina,
-  isReady,
-  PrivateKey,
-  Field,
-  MerkleTree,
-  shutdown,
-} from 'snarkyjs';
+import { Mina, PrivateKey, PublicKey, Field, MerkleTree } from 'snarkyjs';
 
 dotenv.config({ path: './.env' });
-
-await isReady;
 
 const dpk: string = process.env.DPK || '';
 const deployerPrivateKey: PrivateKey = PrivateKey.fromBase58(dpk);
@@ -23,10 +14,9 @@ Mina.setActiveInstance(Berkeley);
 
 const zpk: string = process.env.MZPK || '';
 const zkAppPrivateKey: PrivateKey = PrivateKey.fromBase58(zpk);
+const zkAppPublicKey: PublicKey = zkAppPrivateKey.toPublicKey();
 
-const zkAppInstance: AnonMultiSig = new AnonMultiSig(
-  zkAppPrivateKey.toPublicKey()
-);
+const zkAppInstance: AnonMultiSig = new AnonMultiSig(zkAppPublicKey);
 
 let tree: MerkleTree = new MerkleTree(8);
 
@@ -41,7 +31,7 @@ AnonMultiSigLib.generateTree(tree, numberOfMembers, true);
 const root: Field = tree.getRoot();
 
 // When
-const txn = await Mina.transaction(
+const tx = await Mina.transaction(
   {
     sender: deployerPrivateKey.toPublicKey(),
     fee: AnonMultiSigLib.TX_FEE,
@@ -51,9 +41,11 @@ const txn = await Mina.transaction(
     zkAppInstance.initialize(root, minimalQuorum);
   }
 );
-await txn.prove();
-txn.sign([deployerPrivateKey, zkAppPrivateKey]);
-await txn.send();
-console.log('Done!');
-
-shutdown();
+console.log('Proving...');
+console.time('prove');
+await tx.prove();
+console.timeEnd('prove');
+let transactionJson = tx.sign([zkAppPrivateKey, deployerPrivateKey]).toJSON();
+console.log(transactionJson);
+await tx.send();
+console.log('Tx sent!');
