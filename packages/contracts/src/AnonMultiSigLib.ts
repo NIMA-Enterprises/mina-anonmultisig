@@ -1,7 +1,5 @@
-import { AnonMultiSig } from './AnonMultiSig';
 import {
   MerkleTree,
-  Mina,
   Field,
   PrivateKey,
   PublicKey,
@@ -36,20 +34,4 @@ export function generateTree(
     publicKeys.push(publicKey);
   }
   return { privateKeys, publicKeys };
-}
-
-export async function deploy(
-  zkAppInstance: AnonMultiSig,
-  zkAppPrivateKey: PrivateKey,
-  feePayerKey: PrivateKey
-) {
-  const txn = await Mina.transaction(
-    { sender: feePayerKey.toPublicKey(), fee: TX_FEE, memo: 'Deploy' },
-    () => {
-      zkAppInstance.deploy({ zkappKey: zkAppPrivateKey });
-    }
-  );
-  await txn.prove();
-  txn.sign([feePayerKey, zkAppPrivateKey]);
-  await txn.send();
 }
