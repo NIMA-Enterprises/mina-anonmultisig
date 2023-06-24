@@ -1,11 +1,9 @@
 import { AnonMultiSigMock } from './AnonMultiSigMock.js';
 import * as AnonMultiSigLib from './AnonMultiSigLib.js';
 import * as dotenv from 'dotenv';
-import { Mina, isReady, PrivateKey, shutdown } from 'snarkyjs';
+import { Mina, PrivateKey } from 'snarkyjs';
 
 dotenv.config({ path: './.env' });
-
-await isReady;
 
 const dpk: string = process.env.DPK || '';
 const deployerPrivateKey: PrivateKey = PrivateKey.fromBase58(dpk);
@@ -42,5 +40,3 @@ console.log('signing');
 txn.sign([deployerPrivateKey, zkAppPrivateKey]);
 console.log('sending');
 await txn.send();
-
-shutdown();
