@@ -16,7 +16,7 @@ import {
   MerkleMapWitness,
   Reducer,
   Struct,
-  Circuit,
+  Provable,
   CircuitString,
 } from 'snarkyjs';
 
@@ -35,7 +35,7 @@ export class AnonMultiSigMock extends SmartContract {
   @state(Field) minimalQuorum = State<Field>();
   @state(Field) proposalId = State<Field>(); // Acts as a nonce in signing flow
   @state(Field) proposalHash = State<Field>();
-  @state(Field) voteActionsHash = State<Field>();
+  @state(Field) voteActionState = State<Field>();
 
   reducer = Reducer({ actionType: VoteAction });
 
@@ -75,21 +75,23 @@ export class AnonMultiSigMock extends SmartContract {
       setTokenSymbol: Permissions.impossible(),
     });
 
-    // Set initial voteActionsHash
-    this.voteActionsHash.set(Reducer.initialActionsHash);
+    // Set initial voteActionState
+    this.voteActionState.set(Reducer.initialActionState);
 
     // Set root
     const currentMembersTreeRoot: Field = this.membersTreeRoot.get();
     this.membersTreeRoot.assertEquals(currentMembersTreeRoot);
-    currentMembersTreeRoot.isZero().assertTrue();
-    membersTreeRoot.isZero().assertFalse('Members tree root cannot be empty.');
+    currentMembersTreeRoot
+      .equals(0)
+      .assertTrue('Members tree root already set.');
+    membersTreeRoot.equals(0).assertFalse('Members tree root cannot be empty.');
     this.membersTreeRoot.set(membersTreeRoot);
 
     // Set minimal quorum
     const currentMinimalQuorum: Field = this.minimalQuorum.get();
     this.minimalQuorum.assertEquals(currentMinimalQuorum);
-    currentMinimalQuorum.isZero().assertTrue();
-    minimalQuorum.isZero().assertFalse('Minimal quorum cannot be empty.');
+    currentMinimalQuorum.equals(0).assertTrue('Minimal quorum already set.');
+    minimalQuorum.equals(0).assertFalse('Minimal quorum cannot be empty.');
     this.minimalQuorum.set(minimalQuorum);
 
     // Require zkApp signature
@@ -118,10 +120,10 @@ export class AnonMultiSigMock extends SmartContract {
     // Assert proposal hash state is empty
     const currentProposalHash: Field = this.proposalHash.get();
     this.proposalHash.assertEquals(currentProposalHash);
-    currentProposalHash.isZero().assertTrue();
+    currentProposalHash.equals(0).assertTrue('Voting session in progress.');
 
     // Assert new proposal hash is not empty field
-    proposalHash.isZero().assertFalse();
+    proposalHash.equals(0).assertFalse('Invalid proposal hash.');
 
     // Increase proposal nonce by 1
     const proposalId: Field = this.proposalId.get();
@@ -220,7 +222,7 @@ export class AnonMultiSigMock extends SmartContract {
     const [newVotesMerkleMapRoot] = mapPath.computeRootAndKey(vote);
 
     // If previous value was not zero consider the vote overriden
-    const override: Bool = Circuit.if(
+    const override: Bool = Provable.if(
       value.equals(Field(1)).or(value.equals(Field(2))),
       Bool(true),
       Bool(false)
@@ -298,6 +300,9 @@ export class AnonMultiSigMock extends SmartContract {
     to: PublicKey,
     amount: UInt64
   ) {
+    // Assert proposalHash
+    this.assertActiveProposal();
+
     // Assert minimal quorum has voted in favor of proposal execution
     this.assertVotesAndSetActionsHash(Field(1));
 
@@ -323,11 +328,6 @@ export class AnonMultiSigMock extends SmartContract {
 
     // Verify Signature
     signature.verify(member, [msgHash]).assertTrue('Invalid signature.');
-
-    // Assert proposalHash
-    const proposalHash: Field = this.proposalHash.get();
-    this.proposalHash.assertEquals(proposalHash);
-    proposalHash.isZero().assertFalse();
 
     // Assert provided proposal data
     const computedProposalHash = Poseidon.hash([
@@ -362,7 +362,7 @@ export class AnonMultiSigMock extends SmartContract {
   }
 
   /**
-   * @notice Function to assert votes and set new voteActionsHash
+   * @notice Function to assert votes and set new voteActionState
    * @dev Called by cancel and execute functions
    * @param voteType value of vote that is in favor of action we want to make
    */
@@ -381,7 +381,7 @@ export class AnonMultiSigMock extends SmartContract {
     );
 
     // Set new vote actions hash
-    this.voteActionsHash.set(newVoteActionsHash);
+    this.voteActionState.set(newVoteActionsHash);
   }
 
   /**
@@ -389,24 +389,24 @@ export class AnonMultiSigMock extends SmartContract {
    * @param voteType value of vote that is in favor of action we want to make
    */
   countVotes(voteType: Field): Field[] {
-    let voteActionsHash = this.voteActionsHash.get();
-    this.voteActionsHash.assertEquals(voteActionsHash);
+    let voteActionState = this.voteActionState.get();
+    this.voteActionState.assertEquals(voteActionState);
 
-    const reverseVote = Circuit.if(
+    const reverseVote = Provable.if(
       voteType.equals(Field(1)),
       Field(2),
       Field(1)
     );
 
-    let { state: voteCounter, actionsHash: newVoteActionsHash } =
+    let { state: voteCounter, actionState: newVoteActionsHash } =
       this.reducer.reduce(
-        this.reducer.getActions({ fromActionState: voteActionsHash }),
+        this.reducer.getActions({ fromActionState: voteActionState }),
         Field,
         (state: Field, action: VoteAction) => {
-          return Circuit.if(
+          return Provable.if(
             action.vote.equals(voteType),
             state.add(Field(1)),
-            Circuit.if(
+            Provable.if(
               action.vote
                 .equals(reverseVote)
                 .and(action.override.equals(Bool(true))),
@@ -415,7 +415,7 @@ export class AnonMultiSigMock extends SmartContract {
             )
           );
         },
-        { state: Field(0), actionsHash: voteActionsHash }
+        { state: Field(0), actionState: voteActionState }
       );
     return [voteCounter, newVoteActionsHash];
   }
@@ -425,16 +425,16 @@ export class AnonMultiSigMock extends SmartContract {
    * @returns current merkle map root of active proposal votes
    */
   getVotesMerkleMapRoot(): Field {
-    let voteActionsHash = this.voteActionsHash.get();
-    this.voteActionsHash.assertEquals(voteActionsHash);
+    let voteActionState = this.voteActionState.get();
+    this.voteActionState.assertEquals(voteActionState);
 
     const { state: votesMerkleMapRoot } = this.reducer.reduce(
-      this.reducer.getActions({ fromActionState: voteActionsHash }),
+      this.reducer.getActions({ fromActionState: voteActionState }),
       Field,
       (state: Field, action: VoteAction) => {
         return action.merkleMapRoot;
       },
-      { state: new MerkleMap().getRoot(), actionsHash: voteActionsHash }
+      { state: new MerkleMap().getRoot(), actionState: voteActionState }
     );
 
     return votesMerkleMapRoot;
@@ -446,6 +446,6 @@ export class AnonMultiSigMock extends SmartContract {
   assertActiveProposal() {
     let proposalHash = this.proposalHash.get();
     this.proposalHash.assertEquals(proposalHash);
-    proposalHash.isZero().assertFalse();
+    proposalHash.equals(0).assertFalse('No active proposal.');
   }
 }
