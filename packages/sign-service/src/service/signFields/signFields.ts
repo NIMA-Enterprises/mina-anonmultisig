@@ -11,7 +11,7 @@ const signFields = async ({ message }: { message: Field }) => {
 	}
 
 	const { signature } = await window.mina.signFields({
-		message: `[${message.toFields()}]`,
+		message: [message.toString()],
 	});
 
 	return Signature.fromBase58(signature);

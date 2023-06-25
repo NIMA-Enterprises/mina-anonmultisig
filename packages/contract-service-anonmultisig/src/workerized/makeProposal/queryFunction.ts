@@ -1,4 +1,5 @@
 import * as snarkyjs from "snarkyjs";
+import { makeProposal as mp } from "../../pure/makeProposal";
 import { generateMessageHash } from "../generateMessageHash";
 import { GenerateTransactionProofType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
@@ -19,12 +20,12 @@ const makeProposal = async ({
 	receiverAddress: string;
 	amount: number;
 }) => {
-	const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-		name: "generateTransactionProof_makeProposal",
-		type: "module",
-	});
-	const { generateTransactionProof } =
-		wrap<GenerateTransactionProofType>(worker);
+	// const worker = new Worker(new URL("./worker.ts", import.meta.url), {
+	// 	name: "generateTransactionProof_makeProposal",
+	// 	type: "module",
+	// });
+	// const { generateTransactionProof } =
+	// 	wrap<GenerateTransactionProofType>(worker);
 
 	const provider =
 		(await wagmiClient.connector?.getProvider()) as MinaProvider;
@@ -57,7 +58,7 @@ const makeProposal = async ({
 		messageAsJson: message.toJSON(),
 	});
 
-	const { proof } = await generateTransactionProof({
+	const { proof } = await mp({
 		contractAddress,
 		receiverAddress,
 		amount,
@@ -73,7 +74,7 @@ const makeProposal = async ({
 
 	const txUrl = `https://berkeley.minaexplorer.com/transaction/${hash}`;
 
-	worker.terminate();
+	// worker.terminate();
 
 	return { txUrl };
 };
