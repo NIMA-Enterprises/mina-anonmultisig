@@ -42,12 +42,4 @@ const reset = async ({ contractAddress }: { contractAddress: string }) => {
 	return { txUrl };
 };
 
-declare global {
-	interface Window {
-		reset: typeof reset;
-	}
-}
-
-window.reset = reset;
-
 export { reset };

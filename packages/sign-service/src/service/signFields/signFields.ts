@@ -17,12 +17,4 @@ const signFields = async ({ message }: { message: Field }) => {
 	return Signature.fromBase58(signature);
 };
 
-declare global {
-	interface Window {
-		signFields: typeof signFields;
-	}
-}
-
-window.signFields = signFields;
-
 export { signFields };

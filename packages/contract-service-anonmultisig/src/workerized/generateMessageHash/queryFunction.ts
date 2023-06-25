@@ -29,12 +29,4 @@ const generateMessageHash = async ({
 	return Field.fromJSON(messageHash);
 };
 
-declare global {
-	interface Window {
-		generateMessageHash: typeof generateMessageHash;
-	}
-}
-
-window.generateMessageHash = generateMessageHash;
-
 export { generateMessageHash };

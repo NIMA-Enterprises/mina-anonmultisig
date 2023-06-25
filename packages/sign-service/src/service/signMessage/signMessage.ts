@@ -16,12 +16,4 @@ const signMessage = async ({ message }: { message: string }) => {
 	return signature;
 };
 
-declare global {
-	interface Window {
-		signMessage: typeof signMessage;
-	}
-}
-
-window.signMessage = signMessage;
-
 export { signMessage };

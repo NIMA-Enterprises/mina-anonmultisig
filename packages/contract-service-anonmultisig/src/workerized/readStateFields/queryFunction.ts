@@ -18,23 +18,15 @@ const readStateFields = async (
 	const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);
 	const proposalHash = Field.fromJSON(workerResult.proposalHash);
 	const proposalId = Field.fromJSON(workerResult.proposalId);
-	const voteActionsHash = Field.fromJSON(workerResult.voteActionsHash);
+	const voteActionState = Field.fromJSON(workerResult.voteActionState);
 
 	return {
 		membersTreeRoot,
 		minimalQuorum,
 		proposalId,
 		proposalHash,
-		voteActionsHash,
+		voteActionState,
 	};
 };
-
-declare global {
-	interface Window {
-		readStateFields: typeof readStateFields;
-	}
-}
-
-window.readStateFields = readStateFields;
 
 export { readStateFields };
