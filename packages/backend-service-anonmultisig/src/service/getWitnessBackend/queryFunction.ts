@@ -1,8 +1,6 @@
-import mockedData from "./mockedData";
 import { createGetMakeProposalWithessResponseModel } from "./model";
 import { schema } from "./schema";
 import {
-	MyMerkleWitness,
 	buildTree,
 	generateMemberHash,
 	getWitness,
