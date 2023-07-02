@@ -164,6 +164,8 @@ describe('AnonMultiSig', () => {
         [msgHash]
       );
 
+      console.log({ signature, toJSON: signature.toJSON() });
+
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.makeProposal(member, path, signature, proposalHash);

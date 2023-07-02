@@ -1,0 +1,21 @@
+{
+	"name": "business-logic-anonmultisig",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"@reduxjs/toolkit": "^1.9.1",
+		"get-endpoint-creators": "*",
+		"contract-service-anonmultisig": "*",
+		"sign-service": "*",
+		"backend-service-anonmultisig": "*",
+		"snarkyjs": "^0.11.3",
+		"wallet-connection": "*"
+	},
+	"devDependencies": {}
+}

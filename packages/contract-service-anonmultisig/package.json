@@ -1,0 +1,21 @@
+{
+	"name": "contract-service-anonmultisig",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"comlink": "^4.4.0",
+		"contracts": "*",
+		"get-endpoint-creators": "*",
+		"mina-signer": "^2.0.3",
+		"snarkyjs": "^0.11.3",
+		"wallet-connection": "*",
+		"zod": "^3.19.1"
+	},
+	"devDependencies": {}
+}

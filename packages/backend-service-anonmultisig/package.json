@@ -1,0 +1,18 @@
+{
+	"name": "backend-service-anonmultisig",
+	"version": "1.0.0",
+	"main": "src",
+	"sideEffects": false,
+	"private": true,
+	"scripts": {
+		"lint": "TIMING=1 eslint src/**/*.ts* --fix",
+		"clean": "rm -rf .turbo && rm -rf node_modules"
+	},
+	"dependencies": {
+		"snarkyjs": "^0.11.3",
+		"zod": "^3.19.1",
+		"contract-service-anonmultisig": "*",
+		"query-function-creators": "*"
+	},
+	"devDependencies": {}
+}

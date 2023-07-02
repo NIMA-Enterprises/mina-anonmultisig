@@ -1,0 +1,6 @@
+{
+	"projects": {
+		"prod": "anonmultisig",
+		"staging": "anonmultisig-dev"
+	}
+}
