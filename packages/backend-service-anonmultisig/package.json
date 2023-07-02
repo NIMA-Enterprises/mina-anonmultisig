@@ -9,7 +9,7 @@
 		"clean": "rm -rf .turbo && rm -rf node_modules"
 	},
 	"dependencies": {
-		"snarkyjs": "^0.11.0",
+		"snarkyjs": "^0.11.3",
 		"zod": "^3.19.1",
 		"contract-service-anonmultisig": "*",
 		"query-function-creators": "*"

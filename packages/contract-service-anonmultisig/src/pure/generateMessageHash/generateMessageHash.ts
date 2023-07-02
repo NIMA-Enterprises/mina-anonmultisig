@@ -1,6 +1,6 @@
 import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
 import { generateProposalHash } from "../generateProposalHash";
-import { CircuitString, Field, Poseidon, PublicKey, UInt64 } from "snarkyjs";
+import { CircuitString, Poseidon } from "snarkyjs";
 
 const generateMessageHash = async ({
 	contractAddress,

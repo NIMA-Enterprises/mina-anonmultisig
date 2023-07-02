@@ -1,9 +1,8 @@
 import { MyMerkleWitness } from "../MyMerkleWitness";
 import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
-import { generateMessageHash } from "../generateMessageHash";
 import { generateProposalHash } from "../generateProposalHash";
 import { getWitnessBackend } from "backend-service-anonmultisig";
-import { Mina, Poseidon, PublicKey, Signature } from "snarkyjs";
+import { Mina, PublicKey, Signature } from "snarkyjs";
 
 const makeProposal = async ({
 	contractAddress,
@@ -29,23 +28,7 @@ const makeProposal = async ({
 	const path = await getWitnessBackend({ memberAddress });
 	const pathAsMyMerkleWitness = MyMerkleWitness.fromJSON(path);
 
-	console.log({
-		where: "xxxxxxxx",
-		memberAddress,
-		root: pathAsMyMerkleWitness
-			.calculateRoot(Poseidon.hash(member.toFields()))
-			.toJSON(),
-	});
-
 	const signature = Signature.fromBase58(signatureAsBase58);
-
-	console.log({
-		proposalHash,
-		member,
-		path,
-		signature,
-		sig: signature.toBase58(),
-	});
 
 	const txn = await Mina.transaction(
 		{
@@ -62,8 +45,6 @@ const makeProposal = async ({
 			);
 		},
 	);
-
-	console.log({ txn });
 
 	await txn.prove();
 

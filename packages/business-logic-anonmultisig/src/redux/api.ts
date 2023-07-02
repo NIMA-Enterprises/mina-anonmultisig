@@ -4,22 +4,19 @@ import {
 	MyMerkleWitness,
 	buildTree,
 	generateMemberHash,
+	generateMessageHash, // makeProposal,
+	// readStateFields,
 	generateProposalHash,
 	getWitness,
 	makeProposal,
 	readStateFields,
+	reset,
 } from "contract-service-anonmultisig/src/workerized";
-// import {
-// 	generateMessageHash,
-// 	makeProposal,
-// 	readStateFields,
-// 	reset,
-// } from "contract-service-anonmultisig/src/workerized";
 import { getEndpointCreators } from "get-endpoint-creators";
 
 window.readStateFields = readStateFields;
-// window.reset = reset;
-// window.generateMessageHash = generateMessageHash;
+window.reset = reset;
+window.generateMessageHash = generateMessageHash;
 window.makeProposal = makeProposal;
 // window.buildTree = buildTree;
 // window.getWitnessBackend = getWitnessBackend;

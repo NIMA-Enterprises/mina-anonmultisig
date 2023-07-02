@@ -1,6 +1,5 @@
-import { generateMessageHash as gmh } from "../../pure/generateMessageHash";
-import { GenerateMessageHashType } from "./worker";
-import { wrap } from "comlink";
+import { spawn } from "../spawn";
+import { GenerateMessageHashType, worker as www } from "./worker";
 import { Field } from "snarkyjs";
 
 const generateMessageHash = async ({
@@ -12,20 +11,17 @@ const generateMessageHash = async ({
 	receiverAddress: string;
 	amount: number;
 }) => {
-	// const worker = new Worker(new URL("./worker.ts", import.meta.url), {
-	// 	name: "generateMessageHash",
-	// 	type: "module",
-	// });
+	const { worker, terminate } = await spawn<GenerateMessageHashType>(
+		"./generateMessageHash/worker.ts",
+	);
 
-	// const { generateMessageHash } = wrap<GenerateMessageHashType>(worker);
-
-	const { messageHash } = await gmh({
+	const { messageHash } = await worker.generateMessageHash({
 		contractAddress,
 		receiverAddress,
 		amount,
 	});
 
-	// worker.terminate();
+	terminate();
 
 	return Field.fromJSON(messageHash);
 };

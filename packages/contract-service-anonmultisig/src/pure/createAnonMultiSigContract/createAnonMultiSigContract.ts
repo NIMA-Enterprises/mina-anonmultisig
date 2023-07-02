@@ -1,5 +1,5 @@
 import { AnonMultiSigMock as AnonMultiSig } from "contracts";
-import { Mina, PublicKey, fetchAccount, isReady } from "snarkyjs";
+import { Mina, PublicKey, fetchAccount } from "snarkyjs";
 
 const createAnonMultiSigContract = async ({
 	contractAddress,
@@ -12,8 +12,6 @@ const createAnonMultiSigContract = async ({
 	zkAppAddress: ReturnType<typeof PublicKey["fromBase58"]>;
 	zkAppInstance: AnonMultiSig;
 }> => {
-	await isReady;
-
 	const Berkeley = Mina.Network(
 		"https://proxy.berkeley.minaexplorer.com/graphql",
 	);

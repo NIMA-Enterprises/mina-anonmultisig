@@ -1,6 +1,7 @@
 import { createAnonMultiSigContract } from "../../pure";
+import { Ready } from "../spawn";
 import { expose } from "comlink";
-import { Mina, PrivateKey, PublicKey } from "snarkyjs";
+import { Mina, PublicKey } from "snarkyjs";
 
 const generateTransactionProof = async ({
 	contractAddress,
@@ -38,3 +39,4 @@ const worker = {
 export type GenerateTransactionProofType = typeof worker;
 
 expose(worker);
+postMessage(Ready);

@@ -37,8 +37,6 @@ const getWitnessBackend = createRequestQueryFunction({
 		const { tree } = buildTree({ memberHashes });
 		const { path } = await getWitness({ tree, memberSlot });
 
-		console.log({ memberHash, memberHashes, memberSlot, tree, path });
-
 		return path.toJSON();
 	},
 	isMockingEnabled: true,
