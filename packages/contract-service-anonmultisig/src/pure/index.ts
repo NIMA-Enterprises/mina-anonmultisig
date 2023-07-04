@@ -9,3 +9,4 @@ export * from "./generateProposalHash";
 export * from "./MyMerkleWitness";
 export * from "./vote";
 export * from "./buildMap";
+export * from "./generateExecuteMessageHash";

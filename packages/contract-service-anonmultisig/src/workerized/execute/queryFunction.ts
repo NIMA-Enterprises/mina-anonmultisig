@@ -1,11 +1,11 @@
-import { generateMessageHash } from "../generateMessageHash";
+import { generateExecuteMessageHash } from "../generateExecuteMessageHash";
 import { spawn } from "../spawn";
 import { GenerateTransactionProofType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
 import { signFields } from "sign-service/src";
 import { wagmiClient } from "wallet-connection";
 
-const makeProposal = async ({
+const execute = async ({
 	contractAddress,
 	receiverAddress,
 	amount,
@@ -15,7 +15,7 @@ const makeProposal = async ({
 	amount: number;
 }) => {
 	const { worker, terminate } = await spawn<GenerateTransactionProofType>(
-		"./makeProposal/worker.ts",
+		"./execute/worker.ts",
 	);
 
 	try {
@@ -25,10 +25,8 @@ const makeProposal = async ({
 		const memberAddress =
 			(await wagmiClient.connector?.getAccount()) as any as string;
 
-		const message = await generateMessageHash({
+		const message = await generateExecuteMessageHash({
 			contractAddress,
-			receiverAddress,
-			amount,
 		});
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
@@ -53,4 +51,4 @@ const makeProposal = async ({
 	}
 };
 
-export { makeProposal };
+export { execute };

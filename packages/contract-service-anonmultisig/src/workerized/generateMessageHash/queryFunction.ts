@@ -15,7 +15,7 @@ const generateMessageHash = async ({
 		"./generateMessageHash/worker.ts",
 	);
 
-	const { messageHash } = await worker.generateMessageHash({
+	const { messageHash } = await worker.generateProposalMessageHash({
 		contractAddress,
 		receiverAddress,
 		amount,

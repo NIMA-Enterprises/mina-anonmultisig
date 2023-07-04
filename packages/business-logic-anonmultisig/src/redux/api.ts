@@ -3,6 +3,7 @@ import { getWitnessBackend } from "backend-service-anonmultisig";
 import {
 	MyMerkleWitness,
 	buildTree,
+	execute,
 	generateMemberHash,
 	generateMessageHash, // makeProposal,
 	// readStateFields,
@@ -22,6 +23,7 @@ window.generateMessageHash = generateMessageHash;
 window.generateVoteMessageHash = generateVoteMessageHash;
 window.makeProposal = makeProposal;
 window.vote = vote;
+window.execute = execute;
 // window.buildTree = buildTree;
 // window.getWitnessBackend = getWitnessBackend;
 // window.generateMemberHash = generateMemberHash;
