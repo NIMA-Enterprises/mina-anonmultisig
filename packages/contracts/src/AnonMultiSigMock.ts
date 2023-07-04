@@ -105,7 +105,7 @@ export class AnonMultiSigMock extends SmartContract {
    * @param signature is administrator's confirmation signature
    * @param proposalHash is identification hash of proposed action
    */
-  @method makeProposal(
+  @method propose(
     member: PublicKey,
     path: MyMerkleWitness,
     signature: Signature,
