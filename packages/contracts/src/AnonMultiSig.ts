@@ -100,6 +100,9 @@ export class AnonMultiSig extends SmartContract {
     signature: Signature,
     proposalHash: Field
   ) {
+    // Make sure fee payer is not organization member
+    this.checksumCaller(member);
+
     // Compute member PK hash
     const memberHash: Field = Poseidon.hash(member.toFields());
 
@@ -163,6 +166,9 @@ export class AnonMultiSig extends SmartContract {
     value: Field,
     vote: Field
   ) {
+    // Make sure fee payer is not organization member
+    this.checksumCaller(member);
+
     // Assert active proposal existance
     this.assertActiveProposal();
 
@@ -240,6 +246,9 @@ export class AnonMultiSig extends SmartContract {
     path: MyMerkleWitness,
     signature: Signature
   ) {
+    // Make sure fee payer is not organization member
+    this.checksumCaller(member);
+
     // Assert active proposal existance
     this.assertActiveProposal();
 
@@ -289,6 +298,9 @@ export class AnonMultiSig extends SmartContract {
     to: PublicKey,
     amount: UInt64
   ) {
+    // Make sure fee payer is not organization member
+    this.checksumCaller(member);
+
     // Assert proposalHash
     this.assertActiveProposal();
 
@@ -436,5 +448,12 @@ export class AnonMultiSig extends SmartContract {
     let proposalHash = this.proposalHash.get();
     this.proposalHash.assertEquals(proposalHash);
     proposalHash.equals(0).assertFalse('No active proposal.');
+  }
+
+  /**
+   * @notice function to checksum that caller is not organization member
+   */
+  checksumCaller(publicKey: PublicKey) {
+    publicKey.equals(this.sender).assertFalse('Invalid caller.');
   }
 }
