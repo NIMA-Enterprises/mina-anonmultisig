@@ -2,7 +2,7 @@ import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
 import { generateProposalHash } from "../generateProposalHash";
 import { CircuitString, Poseidon } from "snarkyjs";
 
-const generateMessageHash = async ({
+const generateProposalMessageHash = async ({
 	contractAddress,
 	receiverAddress,
 	amount,
@@ -35,4 +35,4 @@ const generateMessageHash = async ({
 	};
 };
 
-export { generateMessageHash };
+export { generateProposalMessageHash };

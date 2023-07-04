@@ -1,9 +1,9 @@
-import { generateProposalMessageHash } from "../../pure/generateProposalMessageHash";
+import { generateVoteMessageHash } from "../../pure/generateVoteMessageHash";
 import { Ready } from "../spawn";
 import { expose } from "comlink";
 
 const worker = {
-	generateProposalMessageHash,
+	generateVoteMessageHash,
 };
 
 export type GenerateMessageHashType = typeof worker;

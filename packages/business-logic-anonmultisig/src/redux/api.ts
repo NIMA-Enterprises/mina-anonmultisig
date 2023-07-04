@@ -7,17 +7,21 @@ import {
 	generateMessageHash, // makeProposal,
 	// readStateFields,
 	generateProposalHash,
+	generateVoteMessageHash,
 	getWitness,
 	makeProposal,
 	readStateFields,
 	reset,
+	vote,
 } from "contract-service-anonmultisig/src/workerized";
 import { getEndpointCreators } from "get-endpoint-creators";
 
 window.readStateFields = readStateFields;
 window.reset = reset;
 window.generateMessageHash = generateMessageHash;
+window.generateVoteMessageHash = generateVoteMessageHash;
 window.makeProposal = makeProposal;
+window.vote = vote;
 // window.buildTree = buildTree;
 // window.getWitnessBackend = getWitnessBackend;
 // window.generateMemberHash = generateMemberHash;
