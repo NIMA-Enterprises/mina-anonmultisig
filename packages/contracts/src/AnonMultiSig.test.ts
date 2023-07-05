@@ -124,8 +124,9 @@ describe('AnonMultiSig', () => {
       const txn = await Mina.transaction(deployerAddress, () => {
         zkAppInstance.initialize(root, Field(minimalQuorum));
       });
-      await txn.prove();
+      await txn.prove(); 
       txn.sign([deployerAccount, zkAppPrivateKey]);
+      console.log(txn.toPretty());
       await txn.send();
 
       // Then
