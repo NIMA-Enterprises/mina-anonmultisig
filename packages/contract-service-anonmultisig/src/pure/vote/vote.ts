@@ -9,12 +9,14 @@ import { Field, MerkleMapWitness, Mina, PublicKey, Signature } from "snarkyjs";
 const vote = async ({
 	contractAddress,
 	memberAddress,
+	feePayerAddress,
 	isUpVote,
 	signatureAsBase58,
 }: {
 	contractAddress: string;
 	isUpVote: boolean;
 	memberAddress: string;
+	feePayerAddress: string;
 	signatureAsBase58: string;
 }) => {
 	const { zkAppInstance } = await createAnonMultiSigContract({
@@ -22,6 +24,7 @@ const vote = async ({
 	});
 
 	const member = PublicKey.fromBase58(memberAddress);
+	const feePayer = PublicKey.fromBase58(feePayerAddress);
 
 	const path = await getWitnessBackend({ memberAddress });
 	const pathAsMyMerkleWitness = MyMerkleWitness.fromJSON(path);
@@ -50,7 +53,7 @@ const vote = async ({
 
 	const txn = await Mina.transaction(
 		{
-			sender: member,
+			sender: feePayer,
 			fee: 100_000_000,
 			memo: "Frontend App Vote",
 		},
