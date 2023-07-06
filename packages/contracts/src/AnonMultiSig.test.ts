@@ -168,7 +168,7 @@ describe('AnonMultiSig', () => {
 
       // Create and send transaction
       const txn = await Mina.transaction(deployerAddress, () => {
-        zkAppInstance.makeProposal(member, path, signature, proposalHash);
+        zkAppInstance.propose(member, path, signature, proposalHash);
       });
       await txn.prove();
       txn.sign([deployerAccount, zkAppPrivateKey]);
