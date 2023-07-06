@@ -10624,6 +10624,18 @@ snarkyjs@^0.11.3:
     reflect-metadata "^0.1.13"
     tslib "^2.3.0"
 
+snarkyjs@^0.11.4:
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.11.4.tgz#b8a5f066720d0b596c729f697b621949fc164804"
+  integrity sha512-PVbVus8xoL1XgkFRg/SlfxmC30AziIgr7HCTeBKzIuffa155mxTL+WARZg4XlIG27hG+CAGycSebQhiedoLR0w==
+  dependencies:
+    blakejs "1.2.1"
+    detect-gpu "^5.0.5"
+    isomorphic-fetch "^3.0.0"
+    js-sha256 "^0.9.0"
+    reflect-metadata "^0.1.13"
+    tslib "^2.3.0"
+
 sonic-boom@^2.2.1:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/sonic-boom/-/sonic-boom-2.8.0.tgz#c1def62a77425090e6ad7516aad8eb402e047611"
