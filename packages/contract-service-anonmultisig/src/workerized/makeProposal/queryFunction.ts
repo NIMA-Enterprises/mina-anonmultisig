@@ -33,17 +33,26 @@ const makeProposal = async ({
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
 
-		// console.log("Please change your wallet");
-		// await waitForAccountChange();
-		// console.log("account changed");
+		console.log("Please change your wallet");
+		console.log({ memberAddress });
+
+		await waitForAccountChange();
+		console.log("account changed");
+
+		const feePayerAddress =
+			(await wagmiClient.connector?.getAccount()) as any as string;
+		console.log({ feePayerAddress });
 
 		const { proof } = await worker.generateTransactionProof({
 			contractAddress,
 			receiverAddress,
 			amount,
 			memberAddress,
+			feePayerAddress,
 			signatureAsBase58,
 		});
+
+		console.log({ proof });
 
 		const { hash } = await provider.sendTransaction({
 			transaction: proof,
