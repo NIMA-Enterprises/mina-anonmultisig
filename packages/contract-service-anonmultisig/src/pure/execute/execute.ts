@@ -6,12 +6,14 @@ import { Mina, PublicKey, Signature, UInt64 } from "snarkyjs";
 const execute = async ({
 	contractAddress,
 	memberAddress,
+	feePayerAddress,
 	signatureAsBase58,
 	receiverAddress,
 	amount,
 }: {
 	contractAddress: string;
 	memberAddress: string;
+	feePayerAddress: string;
 	signatureAsBase58: string;
 	receiverAddress: string;
 	amount: number;
@@ -21,6 +23,7 @@ const execute = async ({
 	});
 
 	const member = PublicKey.fromBase58(memberAddress);
+	const feePayer = PublicKey.fromBase58(feePayerAddress);
 
 	const path = await getWitnessBackend({ memberAddress });
 	const pathAsMyMerkleWitness = MyMerkleWitness.fromJSON(path);
@@ -41,7 +44,7 @@ const execute = async ({
 
 	const txn = await Mina.transaction(
 		{
-			sender: member,
+			sender: feePayer,
 			fee: 100_000_000,
 			memo: "Frontend App Execute",
 		},

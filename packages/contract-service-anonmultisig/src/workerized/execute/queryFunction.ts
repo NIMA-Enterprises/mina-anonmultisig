@@ -3,7 +3,7 @@ import { spawn } from "../spawn";
 import { GenerateTransactionProofType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
 import { signFields } from "sign-service/src";
-import { wagmiClient } from "wallet-connection";
+import { wagmiClient, waitForAccountChange } from "wallet-connection";
 
 const execute = async ({
 	contractAddress,
@@ -31,11 +31,22 @@ const execute = async ({
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
 
+		console.log("Please change your wallet");
+		console.log({ memberAddress });
+
+		await waitForAccountChange();
+		console.log("account changed");
+
+		const feePayerAddress =
+			(await wagmiClient.connector?.getAccount()) as any as string;
+		console.log({ feePayerAddress });
+
 		const { proof } = await worker.generateTransactionProof({
 			contractAddress,
 			receiverAddress,
 			amount,
 			memberAddress,
+			feePayerAddress,
 			signatureAsBase58,
 		});
 
