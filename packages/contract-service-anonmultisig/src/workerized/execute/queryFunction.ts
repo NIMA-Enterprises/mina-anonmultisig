@@ -31,15 +31,10 @@ const execute = async ({
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
 
-		console.log("Please change your wallet");
-		console.log({ memberAddress });
-
 		await waitForAccountChange();
-		console.log("account changed");
 
 		const feePayerAddress =
 			(await wagmiClient.connector?.getAccount()) as any as string;
-		console.log({ feePayerAddress });
 
 		const { proof } = await worker.generateTransactionProof({
 			contractAddress,

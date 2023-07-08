@@ -26,14 +26,6 @@ const cancel = async ({
 
 	const signature = Signature.fromBase58(signatureAsBase58);
 
-	console.log(
-		JSON.stringify({
-			member: member.toJSON(),
-			pathAsMyMerkleWitness: pathAsMyMerkleWitness.toJSON(),
-			signature: signature.toJSON(),
-		}),
-	);
-
 	const txn = await Mina.transaction(
 		{
 			sender: feePayer,
@@ -44,8 +36,6 @@ const cancel = async ({
 			zkAppInstance.cancel(member, pathAsMyMerkleWitness, signature);
 		},
 	);
-
-	console.log(txn);
 
 	await txn.prove();
 
