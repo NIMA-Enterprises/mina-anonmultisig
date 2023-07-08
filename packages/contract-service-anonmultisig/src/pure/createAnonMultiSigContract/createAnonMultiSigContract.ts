@@ -12,9 +12,10 @@ const createAnonMultiSigContract = async ({
 	zkAppAddress: ReturnType<typeof PublicKey["fromBase58"]>;
 	zkAppInstance: AnonMultiSig;
 }> => {
-	const Berkeley = Mina.Network(
-		"https://proxy.berkeley.minaexplorer.com/graphql",
-	);
+	const Berkeley = Mina.Network({
+		mina: "https://proxy.berkeley.minaexplorer.com/graphql",
+		archive: "https://archive.berkeley.minaexplorer.com",
+	});
 	Mina.setActiveInstance(Berkeley);
 
 	const zkAppAddress = PublicKey.fromBase58(contractAddress);

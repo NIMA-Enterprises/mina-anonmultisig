@@ -1,32 +1,21 @@
 import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
-import { generateProposalHash } from "../generateProposalHash";
 import { CircuitString, Poseidon } from "snarkyjs";
 
-const generateMessageHash = async ({
+const generateCancelMessageHash = async ({
 	contractAddress,
-	receiverAddress,
-	amount,
 }: {
 	contractAddress: string;
-	receiverAddress: string;
-	amount: number;
 }) => {
 	const { zkAppInstance, zkAppAddress } = await createAnonMultiSigContract({
 		contractAddress,
 		skipCompile: true,
 	});
 
-	const { proposalHash } = generateProposalHash({
-		receiverAddress,
-		amount,
-	});
-
 	const proposalId = zkAppInstance.proposalId.get();
 
 	const messageHash = Poseidon.hash([
-		proposalHash,
-		proposalId.add(1),
-		...CircuitString.fromString("propose").toFields(),
+		proposalId,
+		...CircuitString.fromString("cancel").toFields(),
 		...zkAppAddress.toFields(),
 	]).toJSON();
 
@@ -35,4 +24,4 @@ const generateMessageHash = async ({
 	};
 };
 
-export { generateMessageHash };
+export { generateCancelMessageHash };

@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"wallet-connection": "*",
-		"snarkyjs": "^0.11.3"
+		"snarkyjs": "^0.11.4"
 	},
 	"devDependencies": {}
 }

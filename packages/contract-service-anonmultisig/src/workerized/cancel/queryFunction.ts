@@ -1,21 +1,13 @@
-import { generateMessageHash } from "../generateMessageHash";
+import { generateCancelMessageHash } from "../generateCancelMessageHash";
 import { spawn } from "../spawn";
 import { GenerateTransactionProofType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
 import { signFields } from "sign-service/src";
 import { wagmiClient, waitForAccountChange } from "wallet-connection";
 
-const makeProposal = async ({
-	contractAddress,
-	receiverAddress,
-	amount,
-}: {
-	contractAddress: string;
-	receiverAddress: string;
-	amount: number;
-}) => {
+const cancel = async ({ contractAddress }: { contractAddress: string }) => {
 	const { worker, terminate } = await spawn<GenerateTransactionProofType>(
-		"./makeProposal/worker.ts",
+		"./cancel/worker.ts",
 	);
 
 	try {
@@ -25,10 +17,8 @@ const makeProposal = async ({
 		const memberAddress =
 			(await wagmiClient.connector?.getAccount()) as any as string;
 
-		const message = await generateMessageHash({
+		const message = await generateCancelMessageHash({
 			contractAddress,
-			receiverAddress,
-			amount,
 		});
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
@@ -45,14 +35,10 @@ const makeProposal = async ({
 
 		const { proof } = await worker.generateTransactionProof({
 			contractAddress,
-			receiverAddress,
-			amount,
 			memberAddress,
 			feePayerAddress,
 			signatureAsBase58,
 		});
-
-		console.log({ proof });
 
 		const { hash } = await provider.sendTransaction({
 			transaction: proof,
@@ -66,4 +52,4 @@ const makeProposal = async ({
 	}
 };
 
-export { makeProposal };
+export { cancel };

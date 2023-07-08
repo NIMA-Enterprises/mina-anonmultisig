@@ -1,25 +1,22 @@
 import { MyMerkleWitness } from "../MyMerkleWitness";
 import { createAnonMultiSigContract } from "../createAnonMultiSigContract";
-import { generateProposalHash } from "../generateProposalHash";
 import { getWitnessBackend } from "backend-service-anonmultisig";
 import { Mina, PublicKey, Signature } from "snarkyjs";
 
-const makeProposal = async ({
+const cancel = async ({
 	contractAddress,
-	receiverAddress,
-	amount,
 	memberAddress,
 	feePayerAddress,
 	signatureAsBase58,
 }: {
 	contractAddress: string;
-	receiverAddress: string;
-	amount: number;
 	memberAddress: string;
 	feePayerAddress: string;
 	signatureAsBase58: string;
 }) => {
-	const { proposalHash } = generateProposalHash({ receiverAddress, amount });
+	const { zkAppInstance } = await createAnonMultiSigContract({
+		contractAddress,
+	});
 
 	const member = PublicKey.fromBase58(memberAddress);
 	const feePayer = PublicKey.fromBase58(feePayerAddress);
@@ -31,33 +28,24 @@ const makeProposal = async ({
 
 	console.log(
 		JSON.stringify({
-			memberAddress,
-			feePayerAddress,
-			signature,
-			path,
-			proposalHash,
+			member: member.toJSON(),
+			pathAsMyMerkleWitness: pathAsMyMerkleWitness.toJSON(),
+			signature: signature.toJSON(),
 		}),
 	);
-
-	const { zkAppInstance } = await createAnonMultiSigContract({
-		contractAddress,
-	});
 
 	const txn = await Mina.transaction(
 		{
 			sender: feePayer,
 			fee: 100_000_000,
-			memo: "Frontend App Make Proposal",
+			memo: "Frontend App Cancel",
 		},
 		() => {
-			zkAppInstance.propose(
-				member,
-				pathAsMyMerkleWitness,
-				signature,
-				proposalHash,
-			);
+			zkAppInstance.cancel(member, pathAsMyMerkleWitness, signature);
 		},
 	);
+
+	console.log(txn);
 
 	await txn.prove();
 
@@ -66,4 +54,4 @@ const makeProposal = async ({
 	};
 };
 
-export { makeProposal };
+export { cancel };

@@ -1,22 +1,19 @@
-import { generateMessageHash } from "../generateMessageHash";
+import { generateVoteMessageHash } from "../generateVoteMessageHash";
 import { spawn } from "../spawn";
-import { GenerateTransactionProofType } from "./worker";
+import { VoteType } from "./worker";
 import type MinaProvider from "@aurowallet/mina-provider";
-import { signFields } from "sign-service/src";
+import { signFields } from "sign-service";
+import { Field } from "snarkyjs";
 import { wagmiClient, waitForAccountChange } from "wallet-connection";
 
-const makeProposal = async ({
+const vote = async ({
 	contractAddress,
-	receiverAddress,
-	amount,
+	isUpVote,
 }: {
 	contractAddress: string;
-	receiverAddress: string;
-	amount: number;
+	isUpVote: boolean;
 }) => {
-	const { worker, terminate } = await spawn<GenerateTransactionProofType>(
-		"./makeProposal/worker.ts",
-	);
+	const { worker, terminate } = await spawn<VoteType>("./vote/worker.ts");
 
 	try {
 		const provider =
@@ -25,10 +22,9 @@ const makeProposal = async ({
 		const memberAddress =
 			(await wagmiClient.connector?.getAccount()) as any as string;
 
-		const message = await generateMessageHash({
+		const message = await generateVoteMessageHash({
 			contractAddress,
-			receiverAddress,
-			amount,
+			isUpVote,
 		});
 
 		const signatureAsBase58 = (await signFields({ message })).toBase58();
@@ -43,10 +39,9 @@ const makeProposal = async ({
 			(await wagmiClient.connector?.getAccount()) as any as string;
 		console.log({ feePayerAddress });
 
-		const { proof } = await worker.generateTransactionProof({
+		const { proof } = await worker.vote({
 			contractAddress,
-			receiverAddress,
-			amount,
+			isUpVote,
 			memberAddress,
 			feePayerAddress,
 			signatureAsBase58,
@@ -66,4 +61,4 @@ const makeProposal = async ({
 	}
 };
 
-export { makeProposal };
+export { vote };

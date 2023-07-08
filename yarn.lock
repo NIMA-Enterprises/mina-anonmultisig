@@ -10612,18 +10612,6 @@ slice-ansi@^4.0.0:
     astral-regex "^2.0.0"
     is-fullwidth-code-point "^3.0.0"
 
-snarkyjs@^0.11.3:
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.11.3.tgz#d20a614a4032a93c50018263b145c7a566e9f4e7"
-  integrity sha512-zqsZDbOr2b7Y94WVoaNWXdRUFavhGNplI2HZR7C9cruOkuUBZ6X1kkNopmekVjSGgyQGenrJarJAOfBZwxPLsA==
-  dependencies:
-    blakejs "1.2.1"
-    detect-gpu "^5.0.5"
-    isomorphic-fetch "^3.0.0"
-    js-sha256 "^0.9.0"
-    reflect-metadata "^0.1.13"
-    tslib "^2.3.0"
-
 snarkyjs@^0.11.4:
   version "0.11.4"
   resolved "https://registry.yarnpkg.com/snarkyjs/-/snarkyjs-0.11.4.tgz#b8a5f066720d0b596c729f697b621949fc164804"

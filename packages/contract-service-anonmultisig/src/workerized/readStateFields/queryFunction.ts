@@ -1,7 +1,5 @@
-import { readStateFields as rsf } from "../../pure";
 import { spawn } from "../spawn";
 import { ReadStateFieldsType } from "./worker";
-import { wrap } from "comlink";
 import { Field } from "snarkyjs";
 
 const readStateFields = async (
