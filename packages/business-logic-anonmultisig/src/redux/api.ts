@@ -1,8 +1,10 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getWitnessBackend } from "backend-service-anonmultisig";
+import { buildMap } from "contract-service-anonmultisig/src/pure";
 import {
 	MyMerkleWitness,
 	buildTree,
+	cancel,
 	execute,
 	generateMemberHash,
 	generateMessageHash, // makeProposal,
@@ -24,6 +26,8 @@ window.generateVoteMessageHash = generateVoteMessageHash;
 window.makeProposal = makeProposal;
 window.vote = vote;
 window.execute = execute;
+window.cancel = cancel;
+window.buildMap = buildMap;
 // window.buildTree = buildTree;
 // window.getWitnessBackend = getWitnessBackend;
 // window.generateMemberHash = generateMemberHash;
