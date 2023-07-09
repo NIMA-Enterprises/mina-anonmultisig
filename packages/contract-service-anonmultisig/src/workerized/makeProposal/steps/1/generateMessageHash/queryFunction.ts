@@ -1,6 +1,5 @@
 import { spawn } from "../../../../spawn";
 import { GenerateMessageHashType } from "./worker";
-import { Field } from "snarkyjs";
 
 const generateMessageHash = async ({
 	contractAddress,

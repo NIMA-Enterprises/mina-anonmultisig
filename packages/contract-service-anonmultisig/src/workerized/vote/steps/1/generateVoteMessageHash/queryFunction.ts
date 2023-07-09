@@ -1,6 +1,5 @@
-import { spawn } from "../spawn";
+import { spawn } from "../../../../spawn";
 import { GenerateMessageHashType } from "./worker";
-import { Field } from "snarkyjs";
 
 const generateVoteMessageHash = async ({
 	contractAddress,
@@ -10,7 +9,7 @@ const generateVoteMessageHash = async ({
 	isUpVote: boolean;
 }) => {
 	const { worker, terminate } = await spawn<GenerateMessageHashType>(
-		"./generateVoteMessageHash/worker.ts",
+		"./vote/steps/1/generateVoteMessageHash/worker.ts",
 	);
 
 	try {
@@ -19,7 +18,7 @@ const generateVoteMessageHash = async ({
 			isUpVote,
 		});
 
-		return Field.fromJSON(messageHash);
+		return { messageHash };
 	} finally {
 		terminate();
 	}

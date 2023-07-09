@@ -1,14 +1,14 @@
 import { anonmultisigBusinessLogicApi } from "./api";
 
-const useMakeProposal = () => {
+const useVote = () => {
 	const [generateMessageHash, generateMessageHashMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep1Mutation();
+		anonmultisigBusinessLogicApi.useVoteStep1Mutation();
 	const [signMessage, signMessageMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep2Mutation();
+		anonmultisigBusinessLogicApi.useVoteStep2Mutation();
 	const [generateTxProof, generateTxProofMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep3Mutation();
+		anonmultisigBusinessLogicApi.useVoteStep3Mutation();
 	const [sendTx, sendTxMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep4Mutation();
+		anonmultisigBusinessLogicApi.useVoteStep4Mutation();
 	const [waitForAccountChange, waitForAccountChangeMutationObj] =
 		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation();
 
@@ -52,13 +52,11 @@ const useMakeProposal = () => {
 
 	const f = async ({
 		contractAddress,
-		receiverAddress,
-		amount,
-	}: typeof anonmultisigBusinessLogicApi["endpoints"]["makeProposalStep1"]["Types"]["QueryArg"]) => {
+		isUpVote,
+	}: typeof anonmultisigBusinessLogicApi["endpoints"]["voteStep1"]["Types"]["QueryArg"]) => {
 		const { messageHash } = await generateMessageHash({
 			contractAddress,
-			receiverAddress,
-			amount,
+			isUpVote,
 		}).unwrap();
 
 		const { signatureAsBase58 } = await signMessage({
@@ -71,8 +69,7 @@ const useMakeProposal = () => {
 
 		const { proof } = await generateTxProof({
 			contractAddress,
-			receiverAddress,
-			amount,
+			isUpVote,
 			memberAddress,
 			feePayerAddress,
 			signatureAsBase58,
@@ -87,7 +84,7 @@ const useMakeProposal = () => {
 		};
 	};
 
-	return { makeProposal: f, steps };
+	return { vote: f, steps };
 };
 
-export { useMakeProposal };
+export { useVote };

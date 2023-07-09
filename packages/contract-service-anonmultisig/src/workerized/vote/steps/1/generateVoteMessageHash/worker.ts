@@ -1,5 +1,5 @@
-import { generateVoteMessageHash } from "../../pure/generateVoteMessageHash";
-import { Ready } from "../spawn";
+import { generateVoteMessageHash } from "../../../../../pure/generateVoteMessageHash";
+import { Ready } from "../../../../spawn";
 import { expose } from "comlink";
 
 const worker = {
