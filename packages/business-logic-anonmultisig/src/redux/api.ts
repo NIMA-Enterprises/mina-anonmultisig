@@ -1,39 +1,7 @@
+import * as makeProposal from "contract-service-anonmultisig/src/workerized/makeProposal";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getWitnessBackend } from "backend-service-anonmultisig";
-import { buildMap } from "contract-service-anonmultisig/src/pure";
-import {
-	MyMerkleWitness,
-	buildTree,
-	cancel,
-	execute,
-	generateMemberHash,
-	generateMessageHash, // makeProposal,
-	// readStateFields,
-	generateProposalHash,
-	generateVoteMessageHash,
-	getWitness,
-	makeProposal,
-	readStateFields,
-	reset,
-	vote,
-} from "contract-service-anonmultisig/src/workerized";
 import { getEndpointCreators } from "get-endpoint-creators";
-
-window.readStateFields = readStateFields;
-window.reset = reset;
-window.generateMessageHash = generateMessageHash;
-window.generateVoteMessageHash = generateVoteMessageHash;
-window.makeProposal = makeProposal;
-window.vote = vote;
-window.execute = execute;
-window.cancel = cancel;
-window.buildMap = buildMap;
-// window.buildTree = buildTree;
-// window.getWitnessBackend = getWitnessBackend;
-// window.generateMemberHash = generateMemberHash;
-// window.generateProposalHash = generateProposalHash;
-// window.getWitness = getWitness;
-// window.MyMerkleWitness = MyMerkleWitness;
+import { waitForAccountChange } from "wallet-connection";
 
 const anonmultisigBusinessLogicApi = createApi({
 	reducerPath: "anonmultisigBusinessLogicApi",
@@ -41,10 +9,18 @@ const anonmultisigBusinessLogicApi = createApi({
 	endpoints: (builder) => {
 		const { createQuery, createMutation } = getEndpointCreators(builder);
 
-		return {};
+		return {
+			makeProposalStep1: createMutation(
+				makeProposal.step1.generateMessageHash,
+			),
+			makeProposalStep2: createMutation(makeProposal.step2.signMessage),
+			makeProposalStep3: createMutation(
+				makeProposal.step3.generateTxProof,
+			),
+			makeProposalStep4: createMutation(makeProposal.step4.sendTx),
+			waitForAccountChange: createMutation(waitForAccountChange),
+		};
 	},
 });
 
 export { anonmultisigBusinessLogicApi };
-
-// export const {} = anonmultisigBusinessLogicApi;

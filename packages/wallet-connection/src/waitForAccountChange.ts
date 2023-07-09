@@ -1,7 +1,10 @@
 import { wagmiClient } from "./client";
 
 const waitForAccountChange = () =>
-	new Promise<void>(async (resolve) => {
+	new Promise<{
+		memberAddress: string;
+		feePayerAddress: string;
+	}>(async (resolve) => {
 		const originalAccount = await wagmiClient.connectors[0].getAccount();
 
 		if (!originalAccount) {
@@ -16,7 +19,10 @@ const waitForAccountChange = () =>
 			}
 
 			clearInterval(intervalId);
-			resolve();
+			resolve({
+				memberAddress: originalAccount,
+				feePayerAddress: newAccount,
+			});
 		}, 1000);
 	});
 

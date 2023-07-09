@@ -1,5 +1,5 @@
-import { makeProposal } from "../../pure/makeProposal";
-import { Ready } from "../spawn";
+import { makeProposal } from "../../../../pure/makeProposal";
+import { Ready } from "../../../spawn";
 import { expose } from "comlink";
 
 const worker = {
