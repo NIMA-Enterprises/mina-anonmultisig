@@ -27,10 +27,6 @@ export default defineConfig({
 		}),
 	],
 
-	worker: {
-		format: "es",
-	},
-
 	preview: {
 		port: 3000,
 	},
