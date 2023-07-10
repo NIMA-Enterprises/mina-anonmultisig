@@ -1,17 +1,12 @@
 {
 	"headers": [
 		{
-			"source": "/**",
+			"source": "/(.*)",
 			"headers": [
 				{
 					"key": "Cache-control",
 					"value": "public, max-age=0, s-maxage=120"
-				}
-			]
-		},
-		{
-			"source": "**",
-			"headers": [
+				},
 				{
 					"key": "Cross-Origin-Opener-Policy",
 					"value": "same-origin"
