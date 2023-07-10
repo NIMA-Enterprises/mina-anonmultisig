@@ -1,6 +1,7 @@
 import { spawn } from "../spawn";
 import { ReadStateFieldsType } from "./worker";
-import { Field } from "snarkyjs";
+
+// import { Field } from "snarkyjs";
 
 const readStateFields = async (
 	...args: Parameters<ReadStateFieldsType["readStateFields"]>
@@ -12,19 +13,21 @@ const readStateFields = async (
 	try {
 		const workerResult = await worker.readStateFields(...args);
 
-		const membersTreeRoot = Field.fromJSON(workerResult.membersTreeRoot);
-		const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);
-		const proposalHash = Field.fromJSON(workerResult.proposalHash);
-		const proposalId = Field.fromJSON(workerResult.proposalId);
-		const voteActionState = Field.fromJSON(workerResult.voteActionState);
+		return workerResult;
 
-		return {
-			membersTreeRoot,
-			minimalQuorum,
-			proposalId,
-			proposalHash,
-			voteActionState,
-		};
+		// const membersTreeRoot = Field.fromJSON(workerResult.membersTreeRoot);
+		// const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);
+		// const proposalHash = Field.fromJSON(workerResult.proposalHash);
+		// const proposalId = Field.fromJSON(workerResult.proposalId);
+		// const voteActionState = Field.fromJSON(workerResult.voteActionState);
+
+		// return {
+		// 	membersTreeRoot,
+		// 	minimalQuorum,
+		// 	proposalId,
+		// 	proposalHash,
+		// 	voteActionState,
+		// };
 	} finally {
 		terminate();
 	}

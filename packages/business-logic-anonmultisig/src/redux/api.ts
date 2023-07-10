@@ -2,6 +2,7 @@ import * as makeProposal from "contract-service-anonmultisig/src/workerized/make
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { cancel } from "contract-service-anonmultisig/src/workerized/cancel";
 import { execute } from "contract-service-anonmultisig/src/workerized/execute";
+import { readStateFields } from "contract-service-anonmultisig/src/workerized/readStateFields";
 import { vote } from "contract-service-anonmultisig/src/workerized/vote";
 import { getEndpointCreators } from "get-endpoint-creators";
 import { waitForAccountChange } from "wallet-connection";
@@ -13,6 +14,7 @@ const anonmultisigBusinessLogicApi = createApi({
 		const { createQuery, createMutation } = getEndpointCreators(builder);
 
 		return {
+			readStateFields: createQuery(readStateFields),
 			waitForAccountChange: createMutation(waitForAccountChange),
 			makeProposalStep1: createMutation(
 				makeProposal.step1.generateMessageHash,
@@ -41,3 +43,5 @@ const anonmultisigBusinessLogicApi = createApi({
 });
 
 export { anonmultisigBusinessLogicApi };
+
+export const { useReadStateFieldsQuery } = anonmultisigBusinessLogicApi;
