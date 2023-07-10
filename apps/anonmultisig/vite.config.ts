@@ -34,13 +34,13 @@ export default defineConfig({
 		port: 3000,
 	},
 
-	// worker: {
-	// 	format: "es",
-	// },
+	worker: {
+		format: "es",
+	},
 
 	optimizeDeps: {
 		esbuildOptions: {
-			target: "esnext",
+			target: "es2022",
 			// Node.js global to browser globalThis
 			define: {
 				global: "globalThis",
@@ -62,7 +62,7 @@ export default defineConfig({
 	],
 
 	build: {
-		target: "esnext",
+		target: "es2022",
 		outDir: "dist",
 		rollupOptions: {
 			plugins: [
