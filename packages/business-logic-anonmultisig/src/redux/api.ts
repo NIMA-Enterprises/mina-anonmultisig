@@ -1,5 +1,6 @@
 import * as makeProposal from "contract-service-anonmultisig/src/workerized/makeProposal";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
+import { cancel } from "contract-service-anonmultisig/src/workerized/cancel";
 import { execute } from "contract-service-anonmultisig/src/workerized/execute";
 import { vote } from "contract-service-anonmultisig/src/workerized/vote";
 import { getEndpointCreators } from "get-endpoint-creators";
@@ -31,6 +32,10 @@ const anonmultisigBusinessLogicApi = createApi({
 			executeStep2: createMutation(execute.step2.signMessage),
 			executeStep3: createMutation(execute.step3.generateTxProof),
 			executeStep4: createMutation(execute.step4.sendTx),
+			cancelStep1: createMutation(cancel.step1.generateCancelMessageHash),
+			cancelStep2: createMutation(cancel.step2.signMessage),
+			cancelStep3: createMutation(cancel.step3.generateTxProof),
+			cancelStep4: createMutation(cancel.step4.sendTx),
 		};
 	},
 });
