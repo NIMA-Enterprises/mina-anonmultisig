@@ -1,5 +1,6 @@
 import { spawn } from "../../../../spawn";
 import { GenerateMessageHashType } from "./worker";
+import importedWorker from "./worker?worker";
 
 const generateVoteMessageHash = async ({
 	contractAddress,
@@ -9,7 +10,7 @@ const generateVoteMessageHash = async ({
 	isUpVote: boolean;
 }) => {
 	const { worker, terminate } = await spawn<GenerateMessageHashType>(
-		"./vote/steps/1/generateVoteMessageHash/worker.ts",
+		importedWorker,
 	);
 
 	try {

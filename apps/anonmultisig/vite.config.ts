@@ -34,6 +34,10 @@ export default defineConfig({
 		port: 3000,
 	},
 
+	worker: {
+		format: "es",
+	},
+
 	optimizeDeps: {
 		esbuildOptions: {
 			target: "esnext",

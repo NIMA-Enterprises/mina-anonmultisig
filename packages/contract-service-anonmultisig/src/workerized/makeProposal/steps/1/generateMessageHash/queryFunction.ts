@@ -1,5 +1,6 @@
 import { spawn } from "../../../../spawn";
 import { GenerateMessageHashType } from "./worker";
+import importedWorker from "./worker?worker";
 
 const generateMessageHash = async ({
 	contractAddress,
@@ -11,7 +12,7 @@ const generateMessageHash = async ({
 	amount: number;
 }) => {
 	const { worker, terminate } = await spawn<GenerateMessageHashType>(
-		"./makeProposal/steps/1/generateMessageHash/worker.ts",
+		importedWorker,
 	);
 
 	try {

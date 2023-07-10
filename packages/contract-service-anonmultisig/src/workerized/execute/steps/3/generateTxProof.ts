@@ -2,6 +2,7 @@ import { generateExecuteMessageHash } from "../1/generateExecuteMessageHash";
 import { signMessage } from "../2/signMessage";
 import { spawn } from "../../../spawn";
 import { GenerateTransactionProofType } from "./worker";
+import importedWorker from "./worker?worker";
 import { waitForAccountChange } from "wallet-connection";
 
 const generateTxProof = async ({
@@ -18,7 +19,7 @@ const generateTxProof = async ({
 		amount: number;
 	}) => {
 	const { worker, terminate } = await spawn<GenerateTransactionProofType>(
-		"./execute/steps/3/worker.ts",
+		importedWorker,
 	);
 
 	try {

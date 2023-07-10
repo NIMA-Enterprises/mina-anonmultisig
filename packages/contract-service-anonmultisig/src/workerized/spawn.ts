@@ -14,14 +14,8 @@ const readinessListener = (worker: Worker, callback: () => void) => {
 	);
 };
 
-const spawn = async <T>(path: URL | string) => {
-	const worker = new Worker(
-		new URL(path, /* relative to _this_ file */ import.meta.url),
-		{
-			// type: "module",
-			name: `spawn_worker > ${path.toString()}`,
-		},
-	);
+const spawn = async <T>(ImportedWorker: typeof Worker) => {
+	const worker = new ImportedWorker();
 
 	const terminate = () => worker.terminate();
 

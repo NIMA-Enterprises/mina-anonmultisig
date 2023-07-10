@@ -1,5 +1,6 @@
 import { spawn } from "../spawn";
 import { ReadStateFieldsType } from "./worker";
+import importedWorker from "./worker?worker";
 
 // import { Field } from "snarkyjs";
 
@@ -7,7 +8,7 @@ const readStateFields = async (
 	...args: Parameters<ReadStateFieldsType["readStateFields"]>
 ) => {
 	const { worker, terminate } = await spawn<ReadStateFieldsType>(
-		"./readStateFields/worker",
+		importedWorker,
 	);
 
 	try {

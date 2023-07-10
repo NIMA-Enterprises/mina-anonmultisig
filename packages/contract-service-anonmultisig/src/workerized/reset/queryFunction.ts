@@ -1,11 +1,12 @@
 import { spawn } from "../spawn";
 import { GenerateTransactionProofType } from "./worker";
+import importedWorker from "./worker?worker";
 import type MinaProvider from "@aurowallet/mina-provider";
 import { wagmiClient } from "wallet-connection";
 
 const reset = async ({ contractAddress }: { contractAddress: string }) => {
 	const { worker, terminate } = await spawn<GenerateTransactionProofType>(
-		"./reset/worker.ts",
+		importedWorker,
 	);
 
 	try {
