@@ -1,5 +1,5 @@
-import { generateProposalMessageHash } from "../../pure/generateProposalMessageHash";
-import { Ready } from "../spawn";
+import { generateProposalMessageHash } from "../../../../../pure/generateProposalMessageHash";
+import { Ready } from "../../../../spawn";
 import { expose } from "comlink";
 
 const worker = {

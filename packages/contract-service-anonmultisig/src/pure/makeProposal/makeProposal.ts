@@ -29,16 +29,6 @@ const makeProposal = async ({
 
 	const signature = Signature.fromBase58(signatureAsBase58);
 
-	console.log(
-		JSON.stringify({
-			memberAddress,
-			feePayerAddress,
-			signature,
-			path,
-			proposalHash,
-		}),
-	);
-
 	const { zkAppInstance } = await createAnonMultiSigContract({
 		contractAddress,
 	});

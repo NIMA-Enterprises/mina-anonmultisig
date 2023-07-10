@@ -40,17 +40,6 @@ const vote = async ({
 
 	const voteField = Field(isUpVote ? 1 : 2);
 
-	console.log(
-		JSON.stringify({
-			member: member.toJSON(),
-			pathAsMyMerkleWitness: pathAsMyMerkleWitness.toJSON(),
-			signature: signature.toJSON(),
-			mapPath: mapPath.toJSON(),
-			value: value.toJSON(),
-			voteField: voteField.toJSON(),
-		}),
-	);
-
 	const txn = await Mina.transaction(
 		{
 			sender: feePayer,
@@ -68,8 +57,6 @@ const vote = async ({
 			);
 		},
 	);
-
-	console.log(txn);
 
 	await txn.prove();
 

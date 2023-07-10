@@ -1,5 +1,5 @@
-import { generateCancelMessageHash } from "../../pure/generateCancelMessageHash";
-import { Ready } from "../spawn";
+import { generateCancelMessageHash } from "../../../../../pure/generateCancelMessageHash";
+import { Ready } from "../../../../spawn";
 import { expose } from "comlink";
 
 const worker = {

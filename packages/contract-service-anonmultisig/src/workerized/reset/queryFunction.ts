@@ -8,25 +8,28 @@ const reset = async ({ contractAddress }: { contractAddress: string }) => {
 		"./reset/worker.ts",
 	);
 
-	const provider =
-		(await wagmiClient.connector?.getProvider()) as MinaProvider;
+	try {
+		const provider =
+			(await wagmiClient.connector?.getProvider()) as MinaProvider;
 
-	const senderAddress = (await wagmiClient.connector?.getAccount()) as string;
+		const senderAddress =
+			(await wagmiClient.connector?.getAccount()) as string;
 
-	const { proof } = await worker.generateTransactionProof({
-		contractAddress,
-		senderAddress,
-	});
+		const { proof } = await worker.generateTransactionProof({
+			contractAddress,
+			senderAddress,
+		});
 
-	const { hash } = await provider.sendTransaction({
-		transaction: proof,
-	});
+		const { hash } = await provider.sendTransaction({
+			transaction: proof,
+		});
 
-	const txUrl = `https://berkeley.minaexplorer.com/transaction/${hash}`;
+		const txUrl = `https://berkeley.minaexplorer.com/transaction/${hash}`;
 
-	terminate();
-
-	return { txUrl };
+		return { txUrl };
+	} finally {
+		terminate();
+	}
 };
 
 export { reset };

@@ -1,5 +1,5 @@
-import { generateExecuteMessageHash } from "../../pure/generateExecuteMessageHash";
-import { Ready } from "../spawn";
+import { generateExecuteMessageHash } from "../../../../../pure/generateExecuteMessageHash";
+import { Ready } from "../../../../spawn";
 import { expose } from "comlink";
 
 const worker = {
