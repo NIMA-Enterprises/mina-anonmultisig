@@ -9,23 +9,25 @@ const readStateFields = async (
 		"./readStateFields/worker.ts",
 	);
 
-	const workerResult = await worker.readStateFields(...args);
+	try {
+		const workerResult = await worker.readStateFields(...args);
 
-	const membersTreeRoot = Field.fromJSON(workerResult.membersTreeRoot);
-	const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);
-	const proposalHash = Field.fromJSON(workerResult.proposalHash);
-	const proposalId = Field.fromJSON(workerResult.proposalId);
-	const voteActionState = Field.fromJSON(workerResult.voteActionState);
+		const membersTreeRoot = Field.fromJSON(workerResult.membersTreeRoot);
+		const minimalQuorum = Field.fromJSON(workerResult.minimalQuorum);
+		const proposalHash = Field.fromJSON(workerResult.proposalHash);
+		const proposalId = Field.fromJSON(workerResult.proposalId);
+		const voteActionState = Field.fromJSON(workerResult.voteActionState);
 
-	terminate();
-
-	return {
-		membersTreeRoot,
-		minimalQuorum,
-		proposalId,
-		proposalHash,
-		voteActionState,
-	};
+		return {
+			membersTreeRoot,
+			minimalQuorum,
+			proposalId,
+			proposalHash,
+			voteActionState,
+		};
+	} finally {
+		terminate();
+	}
 };
 
 export { readStateFields };
