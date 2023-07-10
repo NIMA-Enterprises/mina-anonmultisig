@@ -18,7 +18,7 @@ const spawn = async <T>(path: URL | string) => {
 	const worker = new Worker(
 		new URL(path, /* relative to _this_ file */ import.meta.url),
 		{
-			type: "module",
+			// type: "module",
 			name: `spawn_worker > ${path.toString()}`,
 		},
 	);
