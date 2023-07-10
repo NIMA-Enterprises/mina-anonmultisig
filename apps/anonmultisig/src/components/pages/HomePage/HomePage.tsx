@@ -1,26 +1,32 @@
 import React from "react";
 
-import { useMakeProposal, useVote } from "business-logic-anonmultisig";
+import {
+	useExecute,
+	useMakeProposal,
+	useVote,
+} from "business-logic-anonmultisig";
 import { cx } from "src/utils";
 
 const HomePage = () => {
 	const pageClassName = cx("min-h-screen flex flex-col");
 
-	const { vote, steps } = useVote();
+	const { execute, steps } = useExecute();
 
 	return (
 		<div className={pageClassName}>
 			<p>HomePage</p>
 			<button
 				onClick={() =>
-					vote({
+					execute({
 						contractAddress:
 							"B62qkyKizTdzSCdjsYtzrMcJTPcD2aZ4EpVoWosDGVFJ73hyKMoy4xi",
-						isUpVote: true,
+						receiverAddress:
+							"B62qqFptEGiKzLVoKFAdinkkVhiK111WqJMXrSwFjqdSXdDfU6eqtFg",
+						amount: 999_000_000,
 					})
 				}
 			>
-				vote
+				execute
 			</button>
 			<pre>{JSON.stringify(steps, null, 2)}</pre>
 		</div>

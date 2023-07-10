@@ -1,6 +1,5 @@
-import { spawn } from "../spawn";
+import { spawn } from "../../../../spawn";
 import { GenerateMessageHashType } from "./worker";
-import { Field } from "snarkyjs";
 
 const generateExecuteMessageHash = async ({
 	contractAddress,
@@ -8,7 +7,7 @@ const generateExecuteMessageHash = async ({
 	contractAddress: string;
 }) => {
 	const { worker, terminate } = await spawn<GenerateMessageHashType>(
-		"./generateExecuteMessageHash/worker.ts",
+		"./execute/steps/1/generateExecuteMessageHash/worker.ts",
 	);
 
 	try {
@@ -16,7 +15,7 @@ const generateExecuteMessageHash = async ({
 			contractAddress,
 		});
 
-		return Field.fromJSON(messageHash);
+		return { messageHash };
 	} finally {
 		terminate();
 	}
