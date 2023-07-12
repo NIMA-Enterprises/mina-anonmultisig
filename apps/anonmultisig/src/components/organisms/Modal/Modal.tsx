@@ -1,10 +1,9 @@
-import { twMerge } from "tailwind-merge";
-
 import React from "react";
 import Children from "react-children-utilities";
 
 import { ModalContext } from "./ModalContext";
 import { ModalStep } from "./ModalStep";
+import { cx } from "src/utils";
 
 type ModalStepReactElement = React.ReactElement<
 	React.ComponentProps<typeof ModalStep>,
@@ -63,10 +62,7 @@ const Modal: React.FC<{
 		[showButtons, showStepCircles],
 	);
 
-	const modalClassnames = twMerge(
-		"rounded-xl flex flex-row justify-center items-center gap-2",
-		className,
-	);
+	const modalClassnames = cx("", className);
 
 	return (
 		<ModalContext.Provider value={contextValue}>

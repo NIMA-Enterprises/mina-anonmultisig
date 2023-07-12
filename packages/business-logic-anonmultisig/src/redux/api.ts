@@ -1,11 +1,14 @@
 import * as makeProposal from "contract-service-anonmultisig/src/workerized/makeProposal";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
+// import { buildMap } from "contract-service-anonmultisig/src/pure";
 import { cancel } from "contract-service-anonmultisig/src/workerized/cancel";
 import { execute } from "contract-service-anonmultisig/src/workerized/execute";
 import { readStateFields } from "contract-service-anonmultisig/src/workerized/readStateFields";
 import { vote } from "contract-service-anonmultisig/src/workerized/vote";
 import { getEndpointCreators } from "get-endpoint-creators";
 import { waitForAccountChange } from "wallet-connection";
+
+// window.buildMap = buildMap;
 
 const anonmultisigBusinessLogicApi = createApi({
 	reducerPath: "anonmultisigBusinessLogicApi",

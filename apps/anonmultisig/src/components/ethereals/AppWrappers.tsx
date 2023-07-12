@@ -1,3 +1,5 @@
+import "@tremor/react/dist/esm/tremor.css";
+
 import type { PropsWithChildren } from "react";
 import React from "react";
 import { Provider } from "react-redux";

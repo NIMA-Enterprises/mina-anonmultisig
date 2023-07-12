@@ -12,11 +12,10 @@ module.exports = {
 			black: "#1F0F1C",
 			orange: colors.orange,
 			gray: colors.gray,
+			...colors,
 		},
 		fontFamily: {
-			main: ["Inter", "system-ui", "sans-serif"],
-			popins: ["popins", "system-ui", "sans-serif"],
-			handwritten: ['"OhNow"'],
+			main: ['"Space Grotesk"', "sans-serif"],
 		},
 		extend: {
 			backgroundPosition: {

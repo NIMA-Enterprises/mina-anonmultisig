@@ -4,13 +4,8 @@
 @tailwind utilities;
 
 @layer base {
-	@font-face {
-		font-family: OhNow;
-		src: url(./fonts/OhNow.ttf) format("woff2");
-	}
-
 	html {
-		@apply font-main;
+		@apply font-main !important;
 		font-size: 14px;
 	}
 

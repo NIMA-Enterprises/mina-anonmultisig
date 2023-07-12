@@ -1,10 +1,8 @@
-import { twMerge } from "tailwind-merge";
-
 import React from "react";
+import type { OnlyAs, PolymorphicComponent } from "react-polymorphed";
 
 import { nameToShapeMap } from "./nameToShapeMap";
-import classNames from "classnames";
-import type { PolymorphicComponent, OnlyAs } from "react-polymorphed";
+import { cx } from "src/utils";
 
 const defaultAsType: OnlyAs<"svg"> = "svg";
 
@@ -15,7 +13,7 @@ const Icon: PolymorphicComponent<
 		className?: string;
 	}
 > = ({ type, className, as: As = defaultAsType, ...props }) => {
-	const iconContainerClassName = twMerge(
+	const iconContainerClassName = cx(
 		"fill-none stroke-2 aspect-square w-10 ",
 		className,
 	);
