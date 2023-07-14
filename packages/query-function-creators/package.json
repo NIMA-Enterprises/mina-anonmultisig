@@ -14,6 +14,9 @@
 		"wait": "^0.4.2"
 	},
 	"devDependencies": {
-		"@types/humps": "^2.0.2"
+		"@types/humps": "^2.0.2",
+		"vite": "^4.3.9",
+		"vite-plugin-dts": "^3.0.0-beta.3",
+		"zod": "^3.21.4"
 	}
 }

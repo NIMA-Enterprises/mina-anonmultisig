@@ -1,12 +1,13 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
+import { OrganisationBanner } from "./OrganisationBanner";
 import { useModalManager } from "@components/ethereals/ModalsWrapper";
 import { Button } from "@components/molecules";
 import { cx } from "src/utils";
 
 const OrganisationPage = () => {
-	const pageClassName = cx("min-h-screen flex flex-col");
+	const pageClassName = cx("min-h-screen flex flex-col bg-[#E7F2F6]");
 
 	const params = useParams<"contractAddress">();
 	const contractAddress = params.contractAddress!;
@@ -15,7 +16,7 @@ const OrganisationPage = () => {
 
 	return (
 		<div className={pageClassName}>
-			<p>OrganisationPage</p>
+			<OrganisationBanner contractAddress={contractAddress} />
 			<Button
 				onClick={() =>
 					modalManager.open("MakeProposalModal", {

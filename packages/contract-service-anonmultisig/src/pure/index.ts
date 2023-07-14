@@ -12,3 +12,5 @@ export * from "./buildMap";
 export * from "./generateExecuteMessageHash";
 export * from "./cancel";
 export * from "./generateCancelMessageHash";
+export * from "./countVotes";
+export * from "./getAccountBalance";

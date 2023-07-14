@@ -48,7 +48,8 @@
 		"vite": "^4.3.9",
 		"wagmi": "^0.12.9",
 		"wallet-connection": "*",
-		"zod": "^3.21.4"
+		"zod": "^3.21.4",
+		"formatting-service": "*"
 	},
 	"devDependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",

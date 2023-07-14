@@ -1,32 +1,15 @@
-import type { CreateRequestQueryFunction } from "./createRequestQueryFunction.types";
 import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
 import humps from "humps";
 import wait from "wait";
+import type { ZodType, z } from "zod";
 
-const IS_BACKEND_RESPONSE_VALIDATION_LOGGER_ENABLED = true;
-
-const validateData = (
-	data: any,
-	axiosRequestConfig: ReturnType<
-		Parameters<CreateRequestQueryFunction>[0]["getAxiosRequestConfig"]
-	>,
-	schema: Parameters<CreateRequestQueryFunction>[0]["schema"],
-): any => {
-	if (!IS_BACKEND_RESPONSE_VALIDATION_LOGGER_ENABLED) {
-		return data;
-	}
-
-	const validationResult = schema.safeParse(data);
-
-	if (!validationResult.success) {
-		console.error(
-			`response from ${axiosRequestConfig.method} ${axiosRequestConfig.url} failed to validate`,
-		);
-		console.error(validationResult.error.message, data);
-	}
-
-	return data;
-};
+type CreateRequestQueryFunction = <SchemaType extends ZodType, ArgType>(props: {
+	getAxiosRequestConfig: (props: ArgType) => AxiosRequestConfig;
+	schema: SchemaType;
+	isMockingEnabled?: boolean;
+	getMockedData?: (props: ArgType) => any;
+}) => (props: ArgType) => Promise<z.infer<SchemaType>>;
 
 const defaultValue: Record<any, any> = {};
 
@@ -34,13 +17,13 @@ export const createRequestQueryFunction: CreateRequestQueryFunction =
 	({
 		getAxiosRequestConfig,
 		schema,
-		model,
 		isMockingEnabled = false,
 		getMockedData = () => ({}),
 	}) =>
 	async (arg = defaultValue) => {
-		const axiosRequestConfig = getAxiosRequestConfig(arg);
+		console.log("100");
 
+		const axiosRequestConfig = getAxiosRequestConfig(arg);
 		const data = await (async () => {
 			if (isMockingEnabled) {
 				await wait(1000);
@@ -51,7 +34,7 @@ export const createRequestQueryFunction: CreateRequestQueryFunction =
 			return humps.camelizeKeys(response.data);
 		})();
 
-		const validatedData = validateData(data, axiosRequestConfig, schema);
+		const validatedData = schema.parse(data);
 
-		return model(validatedData);
+		return validatedData;
 	};

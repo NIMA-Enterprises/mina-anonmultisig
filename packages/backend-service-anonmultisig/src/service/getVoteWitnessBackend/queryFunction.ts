@@ -1,4 +1,3 @@
-import { createGetMakeProposalWithessResponseModel } from "./model";
 import { schema } from "./schema";
 import {
 	buildMap,
@@ -13,7 +12,6 @@ const getVoteWitnessBackend = createRequestQueryFunction({
 		method: "post",
 	}),
 	schema,
-	model: createGetMakeProposalWithessResponseModel,
 	getMockedData: async ({ memberAddress }) => {
 		const { memberHash } = generateMemberHash({ address: memberAddress });
 
