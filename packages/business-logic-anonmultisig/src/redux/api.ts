@@ -5,6 +5,7 @@ import { getOrganisationData } from "backend-service-anonmultisig";
 import {
 	createAnonMultiSigContract,
 	getAccountBalance,
+	isAddressMemberOfOrganisation,
 } from "contract-service-anonmultisig/src/pure";
 // import { buildMap } from "contract-service-anonmultisig/src/pure";
 import { cancel } from "contract-service-anonmultisig/src/workerized/cancel";
@@ -26,6 +27,9 @@ const anonmultisigBusinessLogicApi = createApi({
 		const { createQuery, createMutation } = getEndpointCreators(builder);
 
 		return {
+			isAddressMemberOfOrganisation: createQuery(
+				isAddressMemberOfOrganisation,
+			),
 			readStateFields: createQuery(readStateFields),
 			accountBalance: createQuery(getAccountBalance),
 			countVotes: createQuery(countVotes),
@@ -72,4 +76,5 @@ export const {
 	useAccountBalanceQuery,
 	useLoadImageQuery,
 	useLoadMultipleImagesQuery,
+	useIsAddressMemberOfOrganisationQuery,
 } = anonmultisigBusinessLogicApi;

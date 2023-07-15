@@ -14,3 +14,4 @@ export * from "./cancel";
 export * from "./generateCancelMessageHash";
 export * from "./countVotes";
 export * from "./getAccountBalance";
+export * from "./isAddressMemberOfOrganisation";

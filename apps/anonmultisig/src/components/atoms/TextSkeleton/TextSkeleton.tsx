@@ -8,14 +8,14 @@ const TextSkeleton: React.FC<
 	}>
 > = ({ className, children }) => {
 	return (
-		<p
+		<span
 			className={cx(
-				"animate-pulse rounded-md bg-gray-400 text-transparent",
+				"animate-pulse rounded-md bg-gray-400 text-transparent block w-full",
 				className,
 			)}
 		>
 			{children ? children : "-"}
-		</p>
+		</span>
 	);
 };
 
