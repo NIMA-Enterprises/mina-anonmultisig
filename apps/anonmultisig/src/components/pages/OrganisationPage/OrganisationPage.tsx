@@ -14,7 +14,10 @@ const OrganisationPage = () => {
 	return (
 		<div className={pageClassName}>
 			<OrganisationBanner contractAddress={contractAddress} />
-			<ProposalSection contractAddress={contractAddress} />
+			<ProposalSection
+				className="md:mt-2 mt-8"
+				contractAddress={contractAddress}
+			/>
 		</div>
 	);
 };

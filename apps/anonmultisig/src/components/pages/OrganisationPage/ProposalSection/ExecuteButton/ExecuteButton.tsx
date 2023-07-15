@@ -51,9 +51,9 @@ const ExecuteButton: React.FC<{
 		}
 
 		const minimalQuorum = +stateFieldsQuery.data.minimalQuorum;
-		const upVotesCount = +countVotesQuery.data.upVotesCount;
+		const upVotesCount = countVotesQuery.data.upVotesCount;
 
-		return upVotesCount >= minimalQuorum;
+		return upVotesCount < minimalQuorum;
 	})();
 	return (
 		<Button

@@ -49,9 +49,9 @@ const CancelButton: React.FC<{
 		}
 
 		const minimalQuorum = +stateFieldsQuery.data.minimalQuorum;
-		const downVotesCount = +countVotesQuery.data.downVotesCount;
+		const downVotesCount = countVotesQuery.data.downVotesCount;
 
-		return downVotesCount >= minimalQuorum;
+		return downVotesCount < minimalQuorum;
 	})();
 	return (
 		<Button
