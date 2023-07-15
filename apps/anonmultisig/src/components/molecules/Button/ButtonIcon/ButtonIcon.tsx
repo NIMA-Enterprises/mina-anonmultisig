@@ -11,6 +11,7 @@ const ButtonIcon: React.FC<React.ComponentProps<typeof Icon>> = (props) => {
 		// type === "gradient" && "stroke-white dark:stroke-white",
 		// type === "black" && "stroke-white dark:stroke-white",
 		type === "outline" && "stroke-slate-700",
+		type === "ghost" && "stroke-[#FF603B]",
 		props.className,
 	);
 

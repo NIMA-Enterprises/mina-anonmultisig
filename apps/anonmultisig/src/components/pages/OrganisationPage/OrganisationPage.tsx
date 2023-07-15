@@ -18,6 +18,7 @@ const OrganisationPage = () => {
 				className="md:mt-2 mt-8"
 				contractAddress={contractAddress}
 			/>
+			<div className="h-40"></div>
 		</div>
 	);
 };

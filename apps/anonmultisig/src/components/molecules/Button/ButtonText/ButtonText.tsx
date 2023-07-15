@@ -7,7 +7,7 @@ const ButtonText: React.FC<React.PropsWithChildren> = ({ children }) => {
 	const { size, type } = useButtonContext();
 	const textClassname = cx(
 		"text-white font-semibold  tracking-wider ",
-		type === "ghost" && " text-black ",
+		type === "ghost" && " text-[#FF603B]",
 		type === "outline" && " text-slate-700",
 		// sizes
 		size === "md" && " text-base",

@@ -1,7 +1,10 @@
 import * as makeProposal from "contract-service-anonmultisig/src/workerized/makeProposal";
 import { loadImage, loadMultipleImages } from "../service";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getOrganisationData } from "backend-service-anonmultisig";
+import {
+	getOrganisationData,
+	getOrganisations,
+} from "backend-service-anonmultisig";
 import {
 	createAnonMultiSigContract,
 	getAccountBalance,
@@ -59,6 +62,7 @@ const anonmultisigBusinessLogicApi = createApi({
 
 			// backend
 			organisationData: createQuery(getOrganisationData),
+			getOrganisations: createQuery(getOrganisations),
 
 			// soft image loading
 			loadImage: createQuery(loadImage),
@@ -77,4 +81,5 @@ export const {
 	useLoadImageQuery,
 	useLoadMultipleImagesQuery,
 	useIsAddressMemberOfOrganisationQuery,
+	useGetOrganisationsQuery,
 } = anonmultisigBusinessLogicApi;
