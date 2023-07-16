@@ -1,21 +1,20 @@
-import { twMerge } from "tailwind-merge";
-
 import React from "react";
 
 import { useButtonContext } from "../ButtonContext";
 import { Icon } from "@components/atoms/Icon";
+import { cx } from "src/utils";
 
 const ButtonIcon: React.FC<React.ComponentProps<typeof Icon>> = (props) => {
 	const { size, type } = useButtonContext();
-	console.log("ButtonIcon has ", { size, type });
-	const iconClassName = twMerge(
+	const iconClassName = cx(
 		"w-4",
 		// type === "gradient" && "stroke-white dark:stroke-white",
 		// type === "black" && "stroke-white dark:stroke-white",
+		type === "outline" && "stroke-slate-700",
+		type === "ghost" && "stroke-[#FF603B]",
 		props.className,
 	);
 
-	console.log(iconClassName);
 	return <Icon className={iconClassName} type={props.type} />;
 };
 

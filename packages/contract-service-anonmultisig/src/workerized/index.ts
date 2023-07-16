@@ -4,3 +4,4 @@ export * from "./makeProposal";
 export * from "./vote";
 export * from "./execute";
 export * from "./cancel";
+export * from "./countVotes";

@@ -1,16 +1,39 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+import React from "react";
+
 import { anonmultisigBusinessLogicApi } from "./api";
 
 const useExecute = () => {
 	const [generateMessageHash, generateMessageHashMutationObj] =
-		anonmultisigBusinessLogicApi.useExecuteStep1Mutation();
+		anonmultisigBusinessLogicApi.useExecuteStep1Mutation({
+			fixedCacheKey: "useExecuteStep1Mutation",
+		});
 	const [signMessage, signMessageMutationObj] =
-		anonmultisigBusinessLogicApi.useExecuteStep2Mutation();
+		anonmultisigBusinessLogicApi.useExecuteStep2Mutation({
+			fixedCacheKey: "useExecuteStep2Mutation",
+		});
 	const [generateTxProof, generateTxProofMutationObj] =
-		anonmultisigBusinessLogicApi.useExecuteStep3Mutation();
+		anonmultisigBusinessLogicApi.useExecuteStep3Mutation({
+			fixedCacheKey: "useExecuteStep3Mutation",
+		});
 	const [sendTx, sendTxMutationObj] =
-		anonmultisigBusinessLogicApi.useExecuteStep4Mutation();
+		anonmultisigBusinessLogicApi.useExecuteStep4Mutation({
+			fixedCacheKey: "useExecuteStep4Mutation",
+		});
 	const [waitForAccountChange, waitForAccountChangeMutationObj] =
-		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation();
+		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation({
+			fixedCacheKey: "useWaitForAccountChangeMutation",
+		});
+
+	React.useEffect(() => {
+		return () => {
+			generateMessageHashMutationObj.reset();
+			signMessageMutationObj.reset();
+			generateTxProofMutationObj.reset();
+			sendTxMutationObj.reset();
+			waitForAccountChangeMutationObj.reset();
+		};
+	}, []);
 
 	const steps = [
 		{
@@ -49,6 +72,28 @@ const useExecute = () => {
 			isError: sendTxMutationObj.isError,
 		},
 	];
+
+	const isSuccess = steps.every(({ isSuccess }) => isSuccess);
+	const isError = steps.some(({ isError }) => isError);
+	const error =
+		generateMessageHashMutationObj.error ||
+		signMessageMutationObj.error ||
+		waitForAccountChangeMutationObj.error ||
+		generateTxProofMutationObj.error ||
+		sendTxMutationObj.error;
+	const isLoading = steps.some(({ isLoading }) => isLoading);
+	const isUninitialized = steps.every(
+		({ isUninitialized }) => isUninitialized,
+	);
+
+	const statusFlags = {
+		isSuccess,
+		isError: !isSuccess && isError,
+		error,
+		isLoading: !isSuccess && !isError && isLoading,
+		isUninitialized:
+			!isSuccess && !isError && !isLoading && isUninitialized,
+	};
 
 	const f = async ({
 		contractAddress,
@@ -89,7 +134,7 @@ const useExecute = () => {
 		};
 	};
 
-	return { execute: f, steps };
+	return { execute: f, steps, ...statusFlags };
 };
 
 export { useExecute };

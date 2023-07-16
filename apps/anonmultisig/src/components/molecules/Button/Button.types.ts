@@ -37,8 +37,8 @@ interface IButtonProps {
 	onClick: () => any;
 	className?: string;
 
-	type?: "light" | "primary" | "secondary";
-	size?: "lg" | "md" | "sm";
+	type?: "ghost" | "outline" | "primary";
+	size?: "md" | "sm" | "wrapper";
 	disabled?: boolean;
 }
 

@@ -15,7 +15,10 @@
 		"sign-service": "*",
 		"backend-service-anonmultisig": "*",
 		"snarkyjs": "^0.11.4",
-		"wallet-connection": "*"
+		"wallet-connection": "*",
+		"react": "^18.2.0"
 	},
-	"devDependencies": {}
+	"devDependencies": {
+		"@types/react": "^18.0.33"
+	}
 }

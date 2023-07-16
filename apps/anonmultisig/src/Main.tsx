@@ -1,5 +1,4 @@
 import "./Main.css";
-import '@tremor/react/dist/esm/tremor.css';
 
 import * as React from "react";
 import { createRoot } from "react-dom/client";

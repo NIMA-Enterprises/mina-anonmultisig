@@ -1,16 +1,39 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+import React from "react";
+
 import { anonmultisigBusinessLogicApi } from "./api";
 
 const useMakeProposal = () => {
 	const [generateMessageHash, generateMessageHashMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep1Mutation();
+		anonmultisigBusinessLogicApi.useMakeProposalStep1Mutation({
+			fixedCacheKey: "useMakeProposalStep1Mutation",
+		});
 	const [signMessage, signMessageMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep2Mutation();
+		anonmultisigBusinessLogicApi.useMakeProposalStep2Mutation({
+			fixedCacheKey: "useMakeProposalStep2Mutation",
+		});
 	const [generateTxProof, generateTxProofMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep3Mutation();
+		anonmultisigBusinessLogicApi.useMakeProposalStep3Mutation({
+			fixedCacheKey: "useMakeProposalStep3Mutation",
+		});
 	const [sendTx, sendTxMutationObj] =
-		anonmultisigBusinessLogicApi.useMakeProposalStep4Mutation();
+		anonmultisigBusinessLogicApi.useMakeProposalStep4Mutation({
+			fixedCacheKey: "useMakeProposalStep4Mutation",
+		});
 	const [waitForAccountChange, waitForAccountChangeMutationObj] =
-		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation();
+		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation({
+			fixedCacheKey: "useWaitForAccountChangeMutation",
+		});
+
+	React.useEffect(() => {
+		return () => {
+			generateMessageHashMutationObj.reset();
+			signMessageMutationObj.reset();
+			generateTxProofMutationObj.reset();
+			sendTxMutationObj.reset();
+			waitForAccountChangeMutationObj.reset();
+		};
+	}, []);
 
 	const steps = [
 		{
@@ -50,6 +73,28 @@ const useMakeProposal = () => {
 		},
 	];
 
+	const isSuccess = steps.every(({ isSuccess }) => isSuccess);
+	const isError = steps.some(({ isError }) => isError);
+	const error =
+		generateMessageHashMutationObj.error ||
+		signMessageMutationObj.error ||
+		waitForAccountChangeMutationObj.error ||
+		generateTxProofMutationObj.error ||
+		sendTxMutationObj.error;
+	const isLoading = steps.some(({ isLoading }) => isLoading);
+	const isUninitialized = steps.every(
+		({ isUninitialized }) => isUninitialized,
+	);
+
+	const statusFlags = {
+		isSuccess,
+		isError: !isSuccess && isError,
+		error,
+		isLoading: !isSuccess && !isError && isLoading,
+		isUninitialized:
+			!isSuccess && !isError && !isLoading && isUninitialized,
+	};
+
 	const f = async ({
 		contractAddress,
 		receiverAddress,
@@ -87,7 +132,7 @@ const useMakeProposal = () => {
 		};
 	};
 
-	return { makeProposal: f, steps };
+	return { makeProposal: f, steps, ...statusFlags };
 };
 
 export { useMakeProposal };

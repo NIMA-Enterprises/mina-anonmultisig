@@ -1,11 +1,28 @@
 import * as makeProposal from "contract-service-anonmultisig/src/workerized/makeProposal";
+import { loadImage, loadMultipleImages } from "../service";
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
+import {
+	getOrganisationData,
+	getOrganisations,
+} from "backend-service-anonmultisig";
+import {
+	createAnonMultiSigContract,
+	getAccountBalance,
+	isAddressMemberOfOrganisation,
+} from "contract-service-anonmultisig/src/pure";
+// import { buildMap } from "contract-service-anonmultisig/src/pure";
 import { cancel } from "contract-service-anonmultisig/src/workerized/cancel";
+import { countVotes } from "contract-service-anonmultisig/src/workerized/countVotes";
 import { execute } from "contract-service-anonmultisig/src/workerized/execute";
 import { readStateFields } from "contract-service-anonmultisig/src/workerized/readStateFields";
 import { vote } from "contract-service-anonmultisig/src/workerized/vote";
 import { getEndpointCreators } from "get-endpoint-creators";
 import { waitForAccountChange } from "wallet-connection";
+
+window.createAnonMultiSigContract = createAnonMultiSigContract;
+window.countVotes = countVotes;
+
+// window.buildMap = buildMap;
 
 const anonmultisigBusinessLogicApi = createApi({
 	reducerPath: "anonmultisigBusinessLogicApi",
@@ -14,7 +31,12 @@ const anonmultisigBusinessLogicApi = createApi({
 		const { createQuery, createMutation } = getEndpointCreators(builder);
 
 		return {
+			isAddressMemberOfOrganisation: createQuery(
+				isAddressMemberOfOrganisation,
+			),
 			readStateFields: createQuery(readStateFields),
+			accountBalance: createQuery(getAccountBalance),
+			countVotes: createQuery(countVotes),
 			waitForAccountChange: createMutation(waitForAccountChange),
 			makeProposalStep1: createMutation(
 				makeProposal.step1.generateMessageHash,
@@ -38,10 +60,27 @@ const anonmultisigBusinessLogicApi = createApi({
 			cancelStep2: createMutation(cancel.step2.signMessage),
 			cancelStep3: createMutation(cancel.step3.generateTxProof),
 			cancelStep4: createMutation(cancel.step4.sendTx),
+
+			// backend
+			organisationData: createQuery(getOrganisationData),
+			getOrganisations: createQuery(getOrganisations),
+
+			// soft image loading
+			loadImage: createQuery(loadImage),
+			loadMultipleImages: createQuery(loadMultipleImages),
 		};
 	},
 });
 
 export { anonmultisigBusinessLogicApi };
 
-export const { useReadStateFieldsQuery } = anonmultisigBusinessLogicApi;
+export const {
+	useReadStateFieldsQuery,
+	useCountVotesQuery,
+	useOrganisationDataQuery,
+	useAccountBalanceQuery,
+	useLoadImageQuery,
+	useLoadMultipleImagesQuery,
+	useIsAddressMemberOfOrganisationQuery,
+	useGetOrganisationsQuery,
+} = anonmultisigBusinessLogicApi;

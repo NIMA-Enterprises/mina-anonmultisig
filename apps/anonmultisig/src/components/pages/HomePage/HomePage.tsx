@@ -1,41 +1,24 @@
 import React from "react";
 
-import {
-	useCancel,
-	useExecute,
-	useMakeProposal,
-	useReadStateFieldsQuery,
-	useVote,
-} from "business-logic-anonmultisig";
-import { cx } from "src/utils";
+import { BackgroundImage } from "./BackgroundImage";
+import { Menu } from "@components/organisms/Menu";
 
 const HomePage = () => {
-	const pageClassName = cx("min-h-screen flex flex-col");
-
-	const { data } = useReadStateFieldsQuery({
-		contractAddress:
-			"B62qkyKizTdzSCdjsYtzrMcJTPcD2aZ4EpVoWosDGVFJ73hyKMoy4xi",
-	});
-	const { cancel, steps } = useCancel();
-
 	return (
-		<div className={pageClassName}>
-			<p>HomePage</p>
-			<p>{JSON.stringify(data, null, 2)}</p>
-			<button
-				onClick={() =>
-					cancel({
-						contractAddress:
-							"B62qkyKizTdzSCdjsYtzrMcJTPcD2aZ4EpVoWosDGVFJ73hyKMoy4xi",
-						// receiverAddress:
-						// 	"B62qqFptEGiKzLVoKFAdinkkVhiK111WqJMXrSwFjqdSXdDfU6eqtFg",
-						// amount: 999_000_000,
-					})
-				}
-			>
-				execute
-			</button>
-			<pre>{JSON.stringify(steps, null, 2)}</pre>
+		<div className="relative h-screen w-full flex items-end justify-start p-24">
+			<div className="absolute left-0 right-0 top-0 z-10">
+				<Menu />
+			</div>
+			<BackgroundImage className="absolute inset-0 z-0" />
+			<div className="z-10 basis-3/5">
+				<h1 className="font-bold text-[#2d2d2d] text-[80px]">
+					AnonMultiSig
+				</h1>
+				<h2 className="text-[#2d2d2d] text-[48px] leading-[56px]">
+					Presenting an advanced privacy and security solution for
+					Web3, fortified by the utilization of zero knowledge proofs!
+				</h2>
+			</div>
 		</div>
 	);
 };

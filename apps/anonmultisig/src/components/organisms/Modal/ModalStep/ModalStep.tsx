@@ -1,8 +1,7 @@
-import { twMerge } from "tailwind-merge";
-
 import React from "react";
 
 import { useModalContext } from "../ModalContext";
+import { cx } from "src/utils";
 
 const ModalStep: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
 	children,
@@ -10,7 +9,7 @@ const ModalStep: React.FC<React.PropsWithChildren<{ className?: string }>> = ({
 }) => {
 	const { showButtons, showStepCircles } = useModalContext();
 
-	const stepClassname = twMerge(className);
+	const stepClassname = cx(className);
 
 	return <div className={stepClassname}>{children}</div>;
 };

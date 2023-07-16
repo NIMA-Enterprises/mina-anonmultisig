@@ -1,16 +1,39 @@
+/* eslint-disable @typescript-eslint/no-shadow */
+import React from "react";
+
 import { anonmultisigBusinessLogicApi } from "./api";
 
 const useCancel = () => {
 	const [generateMessageHash, generateMessageHashMutationObj] =
-		anonmultisigBusinessLogicApi.useCancelStep1Mutation();
+		anonmultisigBusinessLogicApi.useCancelStep1Mutation({
+			fixedCacheKey: "useCancelStep1Mutation",
+		});
 	const [signMessage, signMessageMutationObj] =
-		anonmultisigBusinessLogicApi.useCancelStep2Mutation();
+		anonmultisigBusinessLogicApi.useCancelStep2Mutation({
+			fixedCacheKey: "useCancelStep2Mutation",
+		});
 	const [generateTxProof, generateTxProofMutationObj] =
-		anonmultisigBusinessLogicApi.useCancelStep3Mutation();
+		anonmultisigBusinessLogicApi.useCancelStep3Mutation({
+			fixedCacheKey: "useCancelStep3Mutation",
+		});
 	const [sendTx, sendTxMutationObj] =
-		anonmultisigBusinessLogicApi.useCancelStep4Mutation();
+		anonmultisigBusinessLogicApi.useCancelStep4Mutation({
+			fixedCacheKey: "useCancelStep4Mutation",
+		});
 	const [waitForAccountChange, waitForAccountChangeMutationObj] =
-		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation();
+		anonmultisigBusinessLogicApi.useWaitForAccountChangeMutation({
+			fixedCacheKey: "useWaitForAccountChangeMutation",
+		});
+
+	React.useEffect(() => {
+		return () => {
+			generateMessageHashMutationObj.reset();
+			signMessageMutationObj.reset();
+			generateTxProofMutationObj.reset();
+			sendTxMutationObj.reset();
+			waitForAccountChangeMutationObj.reset();
+		};
+	}, []);
 
 	const steps = [
 		{
@@ -50,6 +73,28 @@ const useCancel = () => {
 		},
 	];
 
+	const isSuccess = steps.every(({ isSuccess }) => isSuccess);
+	const isError = steps.some(({ isError }) => isError);
+	const error =
+		generateMessageHashMutationObj.error ||
+		signMessageMutationObj.error ||
+		waitForAccountChangeMutationObj.error ||
+		generateTxProofMutationObj.error ||
+		sendTxMutationObj.error;
+	const isLoading = steps.some(({ isLoading }) => isLoading);
+	const isUninitialized = steps.every(
+		({ isUninitialized }) => isUninitialized,
+	);
+
+	const statusFlags = {
+		isSuccess,
+		isError: !isSuccess && isError,
+		error,
+		isLoading: !isSuccess && !isError && isLoading,
+		isUninitialized:
+			!isSuccess && !isError && !isLoading && isUninitialized,
+	};
+
 	const f = async ({
 		contractAddress,
 	}: typeof anonmultisigBusinessLogicApi["endpoints"]["cancelStep1"]["Types"]["QueryArg"]) => {
@@ -81,7 +126,7 @@ const useCancel = () => {
 		};
 	};
 
-	return { cancel: f, steps };
+	return { cancel: f, steps, ...statusFlags };
 };
 
 export { useCancel };

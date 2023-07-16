@@ -1,4 +1,3 @@
-import { createGetMakeProposalWithessResponseModel } from "./model";
 import { schema } from "./schema";
 import {
 	buildMap,
@@ -13,7 +12,6 @@ const getVoteWitnessBackend = createRequestQueryFunction({
 		method: "post",
 	}),
 	schema,
-	model: createGetMakeProposalWithessResponseModel,
 	getMockedData: async ({ memberAddress }) => {
 		const { memberHash } = generateMemberHash({ address: memberAddress });
 
@@ -22,12 +20,12 @@ const getVoteWitnessBackend = createRequestQueryFunction({
 				{
 					memberHash:
 						"15050448691488780176313275667944297343446067985266756144700269421325513365386",
-					vote: 2,
+					vote: 1,
 				},
 				{
 					memberHash:
 						"20676510748447735041586105873474368415049987132205643812100397013565771881111",
-					vote: 2,
+					vote: 0,
 				},
 				{
 					memberHash:

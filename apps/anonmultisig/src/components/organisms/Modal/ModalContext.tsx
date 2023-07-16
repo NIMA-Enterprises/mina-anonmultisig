@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "react";
 import type React from "react";
 import { createContext, useContext } from "react";
+
 import type { Modal } from "./Modal";
 
 const ModalContext = createContext<{

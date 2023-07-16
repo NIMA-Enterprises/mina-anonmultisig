@@ -1,4 +1,3 @@
-import { createGetMakeProposalWithessResponseModel } from "./model";
 import { schema } from "./schema";
 import {
 	buildTree,
@@ -13,7 +12,6 @@ const getWitnessBackend = createRequestQueryFunction({
 		method: "post",
 	}),
 	schema,
-	model: createGetMakeProposalWithessResponseModel,
 	getMockedData: async ({ memberAddress }) => {
 		const { memberHash } = generateMemberHash({ address: memberAddress });
 

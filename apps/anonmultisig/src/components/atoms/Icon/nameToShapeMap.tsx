@@ -25,20 +25,6 @@ const nameToShapeMap = {
 			<polyline points="5 12 12 5 19 12" />
 		</React.Fragment>
 	),
-	SUN: (
-		<React.Fragment>
-			<circle cx="12" cy="12" r="4" />
-			<path d="M12 2v2" />
-			<path d="M12 20v2" />
-			<path d="m4.93 4.93 1.41 1.41" />
-			<path d="m17.66 17.66 1.41 1.41" />
-			<path d="M2 12h2" />
-			<path d="M20 12h2" />
-			<path d="m6.34 17.66-1.41 1.41" />
-			<path d="m19.07 4.93-1.41 1.41" />
-		</React.Fragment>
-	),
-	MOON: <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
 	LOADER1: (
 		<React.Fragment>
 			<path d="M21 2v6h-6" />
@@ -118,32 +104,15 @@ const nameToShapeMap = {
 			fill="black"
 		/>
 	),
-	AVAX: (
-		<path
-			xmlns="http://www.w3.org/2000/svg"
-			d="M 10.527344 0.0976562 C 1.675781 1.238281 -2.875 11.101562 1.972656 18.648438 C 7.324219 26.976562 20.265625 25.25 23.371094 15.792969 C 26.085938 7.523438 19.101562 -1.007812 10.527344 0.0976562 Z M 12.3125 4.679688 C 12.910156 5.179688 14.433594 8.097656 14.433594 8.734375 C 14.429688 9.390625 11.125 15.480469 10.316406 16.316406 C 9.488281 17.175781 5.121094 17.105469 5.121094 16.234375 C 5.121094 15.949219 11.417969 4.832031 11.699219 4.617188 C 11.957031 4.421875 12.015625 4.429688 12.3125 4.679688 Z M 16.511719 11.949219 C 16.578125 12.03125 17.15625 12.992188 17.789062 14.082031 C 19.453125 16.941406 19.511719 16.847656 16.136719 16.847656 C 13.597656 16.847656 13.292969 16.78125 13.292969 16.25 C 13.292969 16.089844 14.984375 13.085938 15.644531 12.070312 C 15.839844 11.773438 16.3125 11.707031 16.511719 11.949219 Z M 16.511719 11.949219 "
-		/>
-	),
-
 	LIST: (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<line x1="8" y1="6" x2="21" y2="6" />
-			<line x1="8" y1="12" x2="21" y2="12" />
-			<line x1="8" y1="18" x2="21" y2="18" />
-			<line x1="3" y1="6" x2="3.01" y2="6" />
-			<line x1="3" y1="12" x2="3.01" y2="12" />
-			<line x1="3" y1="18" x2="3.01" y2="18" />
-		</svg>
+		<React.Fragment>
+			<line x1="8" x2="21" y1="6" y2="6" />
+			<line x1="8" x2="21" y1="12" y2="12" />
+			<line x1="8" x2="21" y1="18" y2="18" />
+			<line x1="3" x2="3.01" y1="6" y2="6" />
+			<line x1="3" x2="3.01" y1="12" y2="12" />
+			<line x1="3" x2="3.01" y1="18" y2="18" />
+		</React.Fragment>
 	),
 
 	CHECKMARK: <polyline points="20 6 9 17 4 12" />,
@@ -169,22 +138,6 @@ const nameToShapeMap = {
 			<path d="m19 9-5 5-4-4-3 3" />
 		</svg>
 	),
-	BOOKMARK: (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		>
-			<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-		</svg>
-	),
-
 	EXTERNAL_LINK: (
 		<React.Fragment>
 			<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -198,23 +151,6 @@ const nameToShapeMap = {
 			<line x1="21" y1="7" x2="9" y2="7" />
 			<polyline points="7 21 3 17 7 13" />
 			<line x1="15" y1="17" x2="3" y2="17" />
-		</React.Fragment>
-	),
-	CART: (
-		<React.Fragment>
-			<circle cx="8" cy="21" r="1" />
-			<circle cx="19" cy="21" r="1" />
-			<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-		</React.Fragment>
-	),
-	FLOWER: (
-		<React.Fragment>
-			<path d="M12 7.5a4.5 4.5 0 1 1 4.5 4.5M12 7.5A4.5 4.5 0 1 0 7.5 12M12 7.5V9m-4.5 3a4.5 4.5 0 1 0 4.5 4.5M7.5 12H9m7.5 0a4.5 4.5 0 1 1-4.5 4.5m4.5-4.5H15m-3 4.5V15" />
-			<circle cx="12" cy="12" r="3" />
-			<path d="m8 16 1.5-1.5" />
-			<path d="M14.5 9.5 16 8" />
-			<path d="m8 8 1.5 1.5" />
-			<path d="M14.5 14.5 16 16" />
 		</React.Fragment>
 	),
 };

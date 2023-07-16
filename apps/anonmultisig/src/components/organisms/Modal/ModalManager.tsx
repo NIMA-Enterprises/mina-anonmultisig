@@ -1,43 +1,63 @@
 import React from "react";
+
 import { FloatingOverlay } from "@floating-ui/react";
-import { useOnClickOutside } from "usehooks-ts";
+import { AnimatePresence, motion } from "framer-motion";
+import { cx } from "src/utils";
 
 export interface IModal<N> {
 	modalName: N;
 }
 
 const configureModalManager = <
-	Props extends { name: string } = any,
-	N1 extends string = string,
-	M extends IModal<N1> & Omit<React.FC<Props>, "modalName"> = any,
+	ModalName extends string = any,
+	DifferentPropType extends Parameters<React.FC>["0"] = any,
+	M extends IModal<ModalName> & React.FC<DifferentPropType> = any,
 >(
 	modals: M[],
 ) => {
-	type DifferentPropTypes = React.ComponentPropsWithoutRef<
-		// @ts-ignore typeof modals[number] is same as React.ElementType, plus extra modalName property
-		typeof modals[number]
-	>;
+	// Remaps modals to state type
+	// Example:
 
-	type DifferentNames = typeof modals[number]["modalName"];
+	// 	IModal<"AcceptOfferModal"> & React.FC<{
+	//     contractAddress: string;
+	//     itemId: number;
+	//     asker: string;
+	// }> | IModal<"RevealModal"> & React.FC<{
+	//     contractAddress: string;
+	// 	}>
+	//
+	// 	will be remapped to
+	// {
+	// 	AcceptOfferModal: {
+	// 		modalName: "AcceptOfferModal",
+	// 		props: {
+	// 			contractAddress: string;
+	// 			itemId: number;
+	// 			asker: string;
+	// 		},
+	//    isOpen: boolean,
+	//    jsxElement: ...
+	// 	},
+	// 	RevealModal: {
+	// 		modalName: "RevealModal",
+	// 		props: {
+	// 			contractAddress: string;
+	// 		},
+	//    isOpen: boolean,
+	//    jsxElement: ...
+	// 	}
+	// }
 
-	type NarrowUnionTypeByName<
-		N extends string,
-		T = DifferentPropTypes,
-	> = T extends { name: N } ? T : never;
+	type StateType = {
+		[K in typeof modals[number] as K["modalName"]]: {
+			modalName: K["modalName"];
+			props: React.ComponentPropsWithoutRef<K>;
+			isOpen: boolean;
+			jsxElement: Omit<K, "modalName">;
+		};
+	};
 
 	const useModalManagerInternal = () => {
-		type StateType = Record<
-			DifferentNames,
-			{
-				isOpen: boolean;
-				props:
-					| Omit<NarrowUnionTypeByName<DifferentNames>, "name">
-					| undefined;
-				jsxElement: typeof modals[number];
-				name: DifferentNames;
-			}
-		>;
-
 		const stateInitializer = () => {
 			const defaultState = {} as StateType;
 			return modals.reduce<StateType>(
@@ -47,7 +67,7 @@ const configureModalManager = <
 						isOpen: false,
 						jsxElement: modal,
 						props: undefined,
-						name: modal.modalName,
+						modalName: modal.modalName,
 					},
 				}),
 				defaultState,
@@ -57,21 +77,16 @@ const configureModalManager = <
 		const [modalManager, setModalManager] =
 			React.useState(stateInitializer);
 
-		const openModal = <N extends DifferentNames>(
-			name: N,
-			props: Omit<NarrowUnionTypeByName<N>, "name"> extends Record<
-				string,
-				never
-			>
-				? { [x: string]: never }
-				: Omit<NarrowUnionTypeByName<N>, "name">,
+		const openModal = <MN extends keyof StateType>(
+			modalName: MN,
+			props: StateType[MN]["props"],
 		) => {
-			if (name in modalManager) {
+			if (modalName in modalManager) {
 				setModalManager((prev) => {
-					const modalToOpen = prev[name];
+					const modalToOpen = prev[modalName];
 					return {
 						...prev,
-						name: {
+						[modalName]: {
 							...modalToOpen,
 							isOpen: true,
 							props,
@@ -81,12 +96,12 @@ const configureModalManager = <
 			}
 		};
 
-		const closeModal = (name: DifferentNames) => {
+		const closeModal = <MN extends keyof StateType>(modalName: MN) => {
 			setModalManager((prev) => {
-				const modalToOpen = prev[name];
+				const modalToOpen = prev[modalName];
 				return {
 					...prev,
-					name: {
+					[modalName]: {
 						...modalToOpen,
 						isOpen: false,
 					},
@@ -122,24 +137,39 @@ const configureModalManager = <
 	const ModalFloatingOverlay: React.FC<{
 		currentElement: ReturnType<
 			typeof useModalManagerInternal
-		>["modalManager"][DifferentNames];
+		>["modalManager"][keyof StateType];
 	}> = ({ currentElement }) => {
-		const { modalManager } = useModalManager();
 		const ModalElement = currentElement.jsxElement;
-		const outsideClickRef = React.useRef<HTMLDivElement>(null);
-		const handleClickOutside = () => {
-			modalManager.close(currentElement.name);
-		};
-		useOnClickOutside(outsideClickRef, handleClickOutside);
 		return (
-			<FloatingOverlay>
-				<div className="flex h-screen w-full items-center justify-center bg-[rgba(0,0,0,0.4)]">
-					<div ref={outsideClickRef}>
-						{/* @ts-ignore Check isReactComponent and flex render from @tanstack/table */}
-						{/* @ts-ignore https://github.com/TanStack/table/blob/b9a30a109fc8c676547bd988152d6fcf2579999e/packages/react-table/src/index.tsx#L26 */}
-						<ModalElement {...currentElement.props} />
-					</div>
-				</div>
+			<FloatingOverlay
+				className={cx("z-50", {
+					"pointer-events-none": !currentElement.isOpen,
+					"pointer-events-auto": currentElement.isOpen,
+				})}
+			>
+				<AnimatePresence>
+					{currentElement.isOpen && (
+						<motion.div
+							className=" bg-white"
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							transition={{ type: "spring", bounce: 0.2 }}
+						>
+							<motion.div
+								initial={{ scale: 0.5 }}
+								animate={{ scale: 1 }}
+								exit={{ scale: 0.5 }}
+								transition={{ type: "spring", bounce: 0.2 }}
+								className="flex h-screen w-full items-center justify-center"
+							>
+								{/* @ts-ignore Check isReactComponent and flex render from @tanstack/table */}
+								{/* @ts-ignore https://github.com/TanStack/table/blob/b9a30a109fc8c676547bd988152d6fcf2579999e/packages/react-table/src/index.tsx#L26 */}
+								<ModalElement {...currentElement.props} />
+							</motion.div>
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</FloatingOverlay>
 		);
 	};
@@ -152,15 +182,16 @@ const configureModalManager = <
 		const { closeModal, openModal, modalManager } =
 			useModalManagerInternal();
 
-		const openModals = Object.values<typeof modalManager[DifferentNames]>(
-			modalManager,
-		).filter(({ isOpen }) => isOpen);
-
 		return (
 			<ModalManagerContext.Provider value={{ openModal, closeModal }}>
 				{children}
-				{openModals.map((el) => (
-					<ModalFloatingOverlay key={el.name} currentElement={el} />
+				{Object.values<typeof modalManager[keyof StateType]>(
+					modalManager,
+				).map((el) => (
+					<ModalFloatingOverlay
+						key={el.modalName}
+						currentElement={el}
+					/>
 				))}
 			</ModalManagerContext.Provider>
 		);
