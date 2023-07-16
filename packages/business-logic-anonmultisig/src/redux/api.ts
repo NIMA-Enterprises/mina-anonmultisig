@@ -20,6 +20,7 @@ import { getEndpointCreators } from "get-endpoint-creators";
 import { waitForAccountChange } from "wallet-connection";
 
 window.createAnonMultiSigContract = createAnonMultiSigContract;
+window.countVotes = countVotes;
 
 // window.buildMap = buildMap;
 

@@ -13,13 +13,15 @@ import { OrganisationsPage } from "@components/pages/OrganisationsPage";
 
 const routes = createRoutesFromChildren(
 	<Route path="/">
-		<Route element={<PageTemplateWithMenuAndFooter />}>
+		<Route>
 			<Route path="/" element={<HomePage />} />
-			<Route
-				path="/organisation/:contractAddress"
-				element={<OrganisationPage />}
-			/>
-			<Route path="/organisations" element={<OrganisationsPage />} />
+			<Route element={<PageTemplateWithMenuAndFooter />}>
+				<Route
+					path="/organisation/:contractAddress"
+					element={<OrganisationPage />}
+				/>
+				<Route path="/organisations" element={<OrganisationsPage />} />
+			</Route>
 		</Route>
 	</Route>,
 );
